@@ -1181,11 +1181,11 @@ uv run secure-mcp
 <div class="steps reveal">
 <div class="step"><div><strong>Crear Web Service</strong><span>Conecta tu repositorio en Render.com.</span></div></div>
 <div class="step"><div><strong>Build Command (uv)</strong>
-<p style="margin-top:4px;">Copia y pega esto exacto para que descargue <code>uv</code> y sincronice:</p>
-<pre style="padding:10px; margin-top:8px; border-radius:8px;">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; $HOME/.local/bin/uv sync</pre>
+<p style="margin-top:4px;">Copia y pega esto exacto para que instale <code>uv</code> y sincronice:</p>
+<pre style="padding:10px; margin-top:8px; border-radius:8px;">pip install uv &amp;&amp; uv sync</pre>
 </div></div>
 <div class="step"><div><strong>Start Command</strong>
-<pre style="padding:10px; margin-top:8px; border-radius:8px;">$HOME/.local/bin/uv run uvicorn seguro.secure_mcp:secure_app --host 0.0.0.0 --port $PORT</pre>
+<pre style="padding:10px; margin-top:8px; border-radius:8px;">uv run uvicorn seguro.secure_mcp:secure_app --host 0.0.0.0 --port $PORT</pre>
 </div></div>
 </div>
 </div>
