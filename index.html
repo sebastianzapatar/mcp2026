@@ -1179,9 +1179,14 @@ uv run secure-mcp
 <h2 class="reveal">Subir el MCP a <span class="accent">Render</span> con uv</h2>
 <p class="lede reveal">Exponer tu servidor al mundo te permite usarlo desde cualquier cliente MCP (como Claude o Cursor). Render permite correr Python de forma nativa e instalar uv en tiempo real.</p>
 <div class="steps reveal">
-<div class="step"><div><strong>Crear Web Service</strong><span>Conecta tu repositorio de GitHub en Render.com.</span></div></div>
-<div class="step"><div><strong>Build Command (uv)</strong><span>Usa: <span class="mono">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; $HOME/.local/bin/uv sync</span> para instalar dependencias ultrarrápido sin requirements.txt.</span></div></div>
-<div class="step"><div><strong>Start Command</strong><span>Usa: <span class="mono">$HOME/.local/bin/uv run uvicorn seguro.secure_mcp:secure_app --host 0.0.0.0 --port $PORT</span></span></div></div>
+<div class="step"><div><strong>Crear Web Service</strong><span>Conecta tu repositorio en Render.com.</span></div></div>
+<div class="step"><div><strong>Build Command (uv)</strong>
+<p style="margin-top:4px;">Copia y pega esto exacto para que descargue <code>uv</code> y sincronice:</p>
+<pre style="padding:10px; margin-top:8px; border-radius:8px;">curl -LsSf https://astral.sh/uv/install.sh | sh &amp;&amp; $HOME/.local/bin/uv sync</pre>
+</div></div>
+<div class="step"><div><strong>Start Command</strong>
+<pre style="padding:10px; margin-top:8px; border-radius:8px;">$HOME/.local/bin/uv run uvicorn seguro.secure_mcp:secure_app --host 0.0.0.0 --port $PORT</pre>
+</div></div>
 </div>
 </div>
 <div class="code-wrap reveal">
