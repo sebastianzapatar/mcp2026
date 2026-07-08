@@ -230,8 +230,8 @@ sirve exactamente igual para llamar al MCP seguro.
 
 Requisitos previos en el Dashboard de Scalekit:
 - Tener habilitada una conexión social de **GitHub**.
-- Registrar `http://localhost:8787/callback` (o el valor que uses en
-  `SCALEKIT_REDIRECT_URI`) como Redirect URI permitido.
+- Colocar en **Allow Callback** la URL `http://localhost:8787/callback` (o el valor que uses en
+  `SCALEKIT_REDIRECT_URI`) para que la autenticación funcione y te redireccione donde lo debe hacer.
 
 Ejecutarlo:
 

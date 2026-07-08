@@ -1291,6 +1291,7 @@ uv run python seguro/inspector_cloud.py
 <h2 class="reveal">Login real con <span class="cyan">GitHub</span></h2>
 <p class="lede reveal">Hasta aquí, quien pedía un token era siempre un Agente (client credentials): nunca un humano de verdad. <span class="mono">github_login/app.py</span> cumple lo que prometía la diapositiva de OAuth 2.1: una persona inicia sesión con su cuenta de <strong>GitHub</strong>, Scalekit la autentica y la registra, y ese token sirve igual para llamar al MCP seguro.</p>
 <div class="steps reveal">
+<div class="step"><div><strong>Configurar Callback</strong><span>Coloca en <strong>Allow Callback</strong> de Scalekit la URL <span class="mono">http://localhost:8787/callback</span> para que redireccione correctamente.</span></div></div>
 <div class="step"><div><strong>Levantar el login</strong><span><span class="mono">uv run github-login</span> abre un servidor local en <span class="mono">http://localhost:8787</span>.</span></div></div>
 <div class="step"><div><strong>Iniciar sesión</strong><span>El botón "Iniciar sesión con GitHub" redirige a la pantalla de login que gestiona Scalekit — nunca vemos la contraseña del usuario.</span></div></div>
 <div class="step"><div><strong>Recibir y usar el token</strong><span>El callback registra al usuario en <span class="mono">usuarios_registrados.json</span> y muestra el token listo para usarse como <span class="mono">Bearer</span>.</span></div></div>
