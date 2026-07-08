@@ -22,6 +22,7 @@ dependencies = [
 mini-mcp = "basico.mini_mcp:main"
 weather-mcp = "basico.main:main"
 secure-mcp = "seguro.secure_mcp:main"
+github-login = "github_login.app:main"
 
 [tool.setuptools]
-packages = ["basico", "seguro"]
+packages = ["basico", "seguro", "github_login"]

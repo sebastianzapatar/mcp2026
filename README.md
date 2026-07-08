@@ -1,9 +1,12 @@
 # MCP Python Examples
 
-Este proyecto tiene dos ejemplos de servidor MCP en Python:
+Este proyecto tiene tres paquetes de servidor/cliente MCP en Python:
 
-- [mini_mcp.py](mini_mcp.py): ejemplo mínimo para entender la estructura
-- [main.py](main.py): ejemplo de clima usando Open-Meteo
+- [basico/mini_mcp.py](basico/mini_mcp.py): ejemplo mínimo para entender la estructura
+- [basico/main.py](basico/main.py): ejemplo de clima usando Open-Meteo, sin seguridad
+- [seguro/](seguro/) y [github_login/](github_login/): la misma tool de clima, pero
+  protegida con OAuth 2.1 (Scalekit) — client credentials (M2M) y login real de
+  usuario con GitHub
 
 También incluye [index.html](index.html), una presentación explicando **uv**, **pipx** y **MCP** con `weather-mcp` como ejemplo real (arquitectura, seguridad, y cómo exponerlo en la nube). Ábrelo directo en el navegador.
 
@@ -13,13 +16,13 @@ Solo el código y los archivos de configuración de uv, sin artefactos generados
 
 | Se versiona | No se versiona (ver [.gitignore](.gitignore)) |
 | --- | --- |
-| `main.py`, `mini_mcp.py` | `.venv/`, `__pycache__/` |
+| `basico/`, `seguro/`, `github_login/` (código) | `.venv/`, `__pycache__/` |
 | `pyproject.toml`, `.python-version` | `*.egg-info`, `build/`, `dist/` |
-| `index.html`, `README.md`, `.gitignore` | `.uv-cache/`, `.claude/`, `.DS_Store` |
+| `index.html`, `README.md`, `.gitignore`, `.env.template` | `.uv-cache/`, `.claude/`, `.DS_Store`, `.env`, `usuarios_registrados.json` |
 
 ## Ejemplo mínimo
 
-El archivo [mini_mcp.py](mini_mcp.py) es el más simple del proyecto.
+El archivo [basico/mini_mcp.py](basico/mini_mcp.py) es el más simple del proyecto.
 
 Hace solo esto:
 - crea un servidor MCP
@@ -47,7 +50,7 @@ Respuesta esperada:
 Puedes correr el MCP mínimo de cualquiera de estas dos formas:
 
 ```bash
-uv run python mini_mcp.py
+uv run python basico/mini_mcp.py
 ```
 
 o:
@@ -63,13 +66,13 @@ No recibe argumentos por consola. Los parámetros se envían cuando un cliente M
 Modo desarrollo con inspector MCP:
 
 ```bash
-uv run mcp dev mini_mcp.py
+uv run mcp dev basico/mini_mcp.py
 ```
 
 Prueba directa como función Python:
 
 ```bash
-uv run python -c "from mini_mcp import saludar; print(saludar('Juan Camilo'))"
+uv run python -c "from basico.mini_mcp import saludar; print(saludar('Juan Camilo'))"
 ```
 
 ## Configurar en clientes MCP
@@ -123,7 +126,7 @@ Dentro de `mcpServers`:
       "/Users/sebastianzapata/mcp",
       "mcp",
       "run",
-      "/Users/sebastianzapata/mcp/mini_mcp.py"
+      "/Users/sebastianzapata/mcp/basico/mini_mcp.py"
     ]
   }
 }
@@ -132,7 +135,7 @@ Dentro de `mcpServers`:
 También puedes instalarlo con:
 
 ```bash
-uv run mcp install /Users/sebastianzapata/mcp/mini_mcp.py --name mini-mcp --with-editable /Users/sebastianzapata/mcp
+uv run mcp install /Users/sebastianzapata/mcp/basico/mini_mcp.py --name mini-mcp --with-editable /Users/sebastianzapata/mcp
 ```
 
 Para ensayarlo en Claude, abre un chat nuevo y pide:
@@ -165,7 +168,7 @@ Dentro de `mcpServers`:
 
 ## Ejemplo de clima
 
-El archivo [main.py](main.py) es un ejemplo más completo.
+El archivo [basico/main.py](basico/main.py) es un ejemplo más completo.
 
 Expone la tool `get_weather`, recibe:
 
@@ -182,7 +185,7 @@ Consulta la API de Open-Meteo y devuelve el clima actual.
 Ejecutarlo:
 
 ```bash
-uv run python main.py
+uv run python basico/main.py
 ```
 
 o:
@@ -194,7 +197,7 @@ uv run weather-mcp
 Modo desarrollo:
 
 ```bash
-uv run mcp dev main.py
+uv run mcp dev basico/main.py
 ```
 
 Notas:
@@ -217,9 +220,49 @@ command = "/Users/sebastianzapata/.local/bin/uv"
 args = ["run", "--project", "/Users/sebastianzapata/mcp", "weather-mcp"]
 ```
 
+## Login de usuario con GitHub (Scalekit)
+
+`seguro/secure_mcp.py` valida tokens, pero hasta ahora solo los generaban
+scripts (client credentials / M2M): ningún humano iniciaba sesión de verdad.
+`github_login/app.py` añade ese flujo: una persona se autentica con su cuenta
+de **GitHub** a través de Scalekit, queda registrada, y el token que recibe
+sirve exactamente igual para llamar al MCP seguro.
+
+Requisitos previos en el Dashboard de Scalekit:
+- Tener habilitada una conexión social de **GitHub**.
+- Registrar `http://localhost:8787/callback` (o el valor que uses en
+  `SCALEKIT_REDIRECT_URI`) como Redirect URI permitido.
+
+Ejecutarlo:
+
+```bash
+cp .env.template .env   # si no lo has hecho ya; agrega tus credenciales de Scalekit
+uv run github-login
+```
+
+Luego:
+1. Abre `http://localhost:8787` en el navegador.
+2. Haz clic en "Iniciar sesión con GitHub".
+3. Tras autorizar en GitHub, Scalekit te redirige de vuelta con un token de
+   usuario y lo registra en `github_login/usuarios_registrados.json` (solo
+   local, no se sube a git — ver `.gitignore`).
+4. Usa ese token como cualquier otro Bearer token contra `secure-mcp`:
+
+```bash
+claude mcp add --transport http secure-mcp \
+  https://tu-dominio.com/sse \
+  --header "Authorization: Bearer <token_del_usuario>"
+```
+
+Los dos flujos conviven: `weather_client.py` e `inspector_cloud.py` siguen
+usando client credentials (un Agente autenticándose a sí mismo), mientras que
+`github_login/app.py` autentica a una persona real. `secure_mcp.py` no
+distingue entre ambos: solo valida que el token sea un JWT vigente firmado
+por tu entorno de Scalekit.
+
 ## Seguridad
 
-`main.py` ya sigue estas prácticas:
+`basico/main.py` ya sigue estas prácticas:
 
 - **Sin API key**: Open-Meteo es pública, no hay secretos que proteger o filtrar.
 - **Validación de entrada**: `latitude`/`longitude` se validan contra rangos físicos antes de armar la URL.
@@ -240,7 +283,7 @@ Reglas generales para servidores MCP propios o de terceros:
 **GitHub**: el repo ya existe en [github.com/sebastianzapatar/mcp2026](https://github.com/sebastianzapatar/mcp2026) (rama `main`). Para subir el resto de archivos:
 
 ```bash
-git add main.py mini_mcp.py pyproject.toml .python-version index.html README.md .gitignore
+git add basico/ seguro/ github_login/ pyproject.toml .python-version index.html README.md .gitignore .env.template
 git commit -m "Add weather MCP server and presentation"
 git push
 ```

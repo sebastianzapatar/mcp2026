@@ -22,3 +22,6 @@ wheels/
 
 # Secrets
 .env
+
+# Registro local de usuarios autenticados con GitHub (datos de demo/auditoría)
+github_login/usuarios_registrados.json

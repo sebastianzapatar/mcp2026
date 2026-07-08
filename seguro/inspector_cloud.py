@@ -15,6 +15,9 @@ def main():
     print("======================================================\n")
     
     print("🔐 Paso 1: Obteniendo token de autorización...")
+    # Igual que weather_client.py, este puente usa client credentials (M2M):
+    # el propio script se autentica como Agente para poder inspeccionar el
+    # servidor, sin representar a ningún usuario humano en particular.
     sc = ScalekitClient(env_url, client_id, client_secret)
     token = sc.get_client_access_token()
     print("✅ Token obtenido exitosamente.\n")

@@ -1,6 +1,5 @@
 import os
 import asyncio
-from typing import Optional
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 from scalekit import ScalekitClient
@@ -16,9 +15,12 @@ async def run_weather_client():
     print("======================================================")
     print("   CLIENTE MCP CLIMA (CON SEGURIDAD SCALEKIT)")
     print("======================================================\n")
-    
+
     print("🔐 Paso 1: Obteniendo token de autorización en la nube...")
-    # El Cliente (Agente) se autentica en Scalekit para obtener su pase
+    # Este script actúa como un Agente automatizado, no como una persona:
+    # usa client credentials (M2M) para conseguir su propio token, sin login
+    # humano de por medio. Para el flujo con un usuario real autenticándose
+    # con GitHub, ver github_login/app.py.
     sc = ScalekitClient(env_url, client_id, client_secret)
     token = sc.get_client_access_token()
     

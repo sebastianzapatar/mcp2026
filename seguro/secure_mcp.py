@@ -1,19 +1,33 @@
+"""
+SERVIDOR MCP SEGURO CON OAUTH 2.1 (SCALEKIT)
+--------------------------------------------
+Este script expone el servidor MCP de CLIMA a Internet usando HTTP (SSE).
+Protegido por Scalekit para que solo Agentes autorizados puedan ver el clima.
+
+Acepta dos tipos de token, porque conviven dos flujos de autorización:
+- Tokens de máquina (client credentials), generados por un Agente/script
+  (ver weather_client.py e inspector_cloud.py).
+- Tokens de un usuario humano autenticado con GitHub
+  (ver github_login/app.py, que implementa el login real prometido en la
+  diapositiva "OAuth 2.1 y Scalekit" de la presentación).
+Este servidor no distingue entre ambos: solo valida que el token sea un JWT
+vigente y firmado por tu entorno de Scalekit.
+"""
+
 import os
-import uvicorn
 import json
 import ssl
 from typing import Any
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
 from urllib.request import urlopen
-import certifi
+from urllib.parse import urlencode
 
-from fastapi import FastAPI, Depends, HTTPException, Request
+import certifi
+import uvicorn
+from fastapi import Request
 from fastapi.responses import Response
 
 # Componentes de MCP
 from mcp.server.fastmcp import FastMCP
-from mcp.server.sse import SseServerTransport
 
 # Componentes de Scalekit para Auth
 from scalekit import ScalekitClient
@@ -23,21 +37,7 @@ WEATHER_API_URL = "https://api.open-meteo.com/v1/forecast"
 REQUEST_TIMEOUT_SECONDS = 15
 SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
-WEATHER_CODE_LABELS = {
-    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-    45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
-    61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain", 71: "Slight snow fall",
-    73: "Moderate snow fall", 75: "Heavy snow fall", 95: "Thunderstorm"
-}
-
 CURRENT_VARIABLES = ["temperature_2m", "relative_humidity_2m", "wind_speed_10m"]
-
-"""
-SERVIDOR MCP SEGURO CON OAUTH 2.1 (SCALEKIT)
---------------------------------------------
-Este script expone el servidor MCP de CLIMA a Internet usando HTTP (SSE).
-Protegido por Scalekit para que solo Agentes autorizados puedan ver el clima.
-"""
 
 # Cargar variables desde el archivo .env
 load_dotenv()
@@ -78,28 +78,36 @@ def get_weather(latitude: float, longitude: float) -> dict[str, Any]:
 
 
 # 3. Aplicación ASGI con Middleware de Autorización
+# mcp.sse_app() ya es una app ASGI completa (no un router de FastAPI), así que
+# no podemos protegerla con `Depends`. En su lugar envolvemos esa app en una
+# función ASGI propia que revisa el header Authorization antes de delegarle
+# la petición.
 mcp_app = mcp.sse_app()
 
 async def secure_app(scope, receive, send):
     if scope["type"] == "http":
         request = Request(scope, receive)
-        # Protegemos los endpoints de MCP
+        # Solo protegemos los endpoints del protocolo MCP; el resto de rutas
+        # (si las hubiera) pasan sin autenticación.
         if request.url.path in ["/sse", "/messages"]:
             auth_header = request.headers.get("Authorization")
             if not auth_header or not auth_header.startswith("Bearer "):
                 response = Response(status_code=401, content="Falta el token Bearer")
                 return await response(scope, receive, send)
-            
+
             token = auth_header.split(" ")[1]
             try:
+                # Válido tanto para tokens de máquina (client credentials)
+                # como para tokens de usuario emitidos tras el login con
+                # GitHub: ambos son JWT firmados por el mismo entorno Scalekit.
                 is_valid = sc.validate_access_token(token)
                 if not is_valid:
                     response = Response(status_code=401, content="El token es inválido")
                     return await response(scope, receive, send)
-            except Exception as e:
-                response = Response(status_code=401, content=f"Autenticación fallida: {e}")
+            except Exception as exc:
+                response = Response(status_code=401, content=f"Autenticación fallida: {exc}")
                 return await response(scope, receive, send)
-                
+
     # Delegar la petición HTTP al servidor nativo de FastMCP
     await mcp_app(scope, receive, send)
 
