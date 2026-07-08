@@ -651,7 +651,7 @@
 </div>
 <div class="panel reveal">
 <p class="caption">Ruta sugerida de clase</p>
-<div class="toc-grid"><a class="toc-item" href="#mapa"><span>01</span><b>Mapa mental</b></a><a class="toc-item" href="#uv-que-es"><span>02</span><b>uv explicado</b></a><a class="toc-item" href="#uv-instalacion"><span>03</span><b>Instalar uv</b></a><a class="toc-item" href="#pipx-vs-pip"><span>04</span><b>pip vs pipx</b></a><a class="toc-item" href="#uv-problema"><span>05</span><b>Problema de Python</b></a><a class="toc-item" href="#uv-archivos"><span>06</span><b>Archivos clave</b></a><a class="toc-item" href="#uv-flujo"><span>07</span><b>Movimiento de uv</b></a><a class="toc-item" href="#uv-comandos"><span>08</span><b>Comandos esenciales</b></a><a class="toc-item" href="#mcp-que-es"><span>09</span><b>MCP explicado</b></a><a class="toc-item" href="#mcp-problema"><span>10</span><b>Problema M×N</b></a><a class="toc-item" href="#mcp-actores"><span>11</span><b>Host · cliente · servidor</b></a><a class="toc-item" href="#mcp-primitivas"><span>12</span><b>Tools, resources, prompts</b></a><a class="toc-item" href="#mcp-api"><span>13</span><b>MCP vs. API directa</b></a><a class="toc-item" href="#mcp-ciclo"><span>14</span><b>Ciclo de una llamada</b></a><a class="toc-item" href="#arquitectura"><span>15</span><b>Arquitectura animada</b></a><a class="toc-item" href="#demo"><span>16</span><b>Demo: get_weather</b></a><a class="toc-item" href="#json"><span>17</span><b>Entrada y salida JSON</b></a><a class="toc-item" href="#seguridad"><span>18</span><b>Seguridad</b></a><a class="toc-item" href="#guion"><span>19</span><b>Guion de clase</b></a><a class="toc-item" href="#distribucion"><span>20</span><b>Distribución</b></a><a class="toc-item" href="#cloud-transporte"><span>21</span><b>stdio vs. HTTP</b></a><a class="toc-item" href="#cloud-desplegar"><span>22</span><b>Desplegar y proteger</b></a><a class="toc-item" href="#oauth-scalekit"><span>23</span><b>OAuth 2.1 y Scalekit</b></a><a class="toc-item" href="#config-scalekit"><span>24</span><b>Configurar Scalekit</b></a><a class="toc-item" href="#cierre"><span>27</span><b>Quiz de cierre</b></a></div>
+<div class="toc-grid"><a class="toc-item" href="#mapa"><span>01</span><b>Mapa mental</b></a><a class="toc-item" href="#uv-que-es"><span>02</span><b>uv explicado</b></a><a class="toc-item" href="#uv-instalacion"><span>03</span><b>Instalar uv</b></a><a class="toc-item" href="#pipx-vs-pip"><span>04</span><b>pip vs pipx</b></a><a class="toc-item" href="#uv-problema"><span>05</span><b>Problema de Python</b></a><a class="toc-item" href="#uv-archivos"><span>06</span><b>Archivos clave</b></a><a class="toc-item" href="#uv-flujo"><span>07</span><b>Movimiento de uv</b></a><a class="toc-item" href="#uv-comandos"><span>08</span><b>Comandos esenciales</b></a><a class="toc-item" href="#mcp-que-es"><span>09</span><b>MCP explicado</b></a><a class="toc-item" href="#mcp-problema"><span>10</span><b>Problema M×N</b></a><a class="toc-item" href="#mcp-actores"><span>11</span><b>Host · cliente · servidor</b></a><a class="toc-item" href="#mcp-primitivas"><span>12</span><b>Tools, resources, prompts</b></a><a class="toc-item" href="#mcp-api"><span>13</span><b>MCP vs. API directa</b></a><a class="toc-item" href="#mcp-ciclo"><span>14</span><b>Ciclo de una llamada</b></a><a class="toc-item" href="#arquitectura"><span>15</span><b>Arquitectura animada</b></a><a class="toc-item" href="#demo"><span>16</span><b>Demo: get_weather</b></a><a class="toc-item" href="#json"><span>17</span><b>Entrada y salida JSON</b></a><a class="toc-item" href="#primer-mcp"><span>18</span><b>Primer MCP</b></a><a class="toc-item" href="#mcp-inspector"><span>19</span><b>El Inspector</b></a><a class="toc-item" href="#seguridad"><span>20</span><b>Seguridad</b></a><a class="toc-item" href="#guion"><span>21</span><b>Guion de clase</b></a><a class="toc-item" href="#distribucion"><span>22</span><b>Distribución</b></a><a class="toc-item" href="#cloud-transporte"><span>23</span><b>stdio vs. HTTP</b></a><a class="toc-item" href="#cloud-desplegar"><span>24</span><b>Desplegar y proteger</b></a><a class="toc-item" href="#oauth-scalekit"><span>25</span><b>OAuth 2.1 y Scalekit</b></a><a class="toc-item" href="#config-scalekit"><span>26</span><b>Configurar Scalekit</b></a><a class="toc-item" href="#deploy-render"><span>27</span><b>Render (Nube)</b></a><a class="toc-item" href="#usar-claude"><span>28</span><b>Usar en Claude</b></a><a class="toc-item" href="#cierre"><span>29</span><b>Quiz de cierre</b></a></div>
 </div>
 </div>
 </section>
@@ -1022,7 +1022,44 @@ def get_weather(latitude: float, longitude: float, elevation: float | None = Non
 </div>
 </div>
 </section>
-<section class="slide" data-step="18" id="seguridad">
+<section class="slide" data-step="18" id="primer-mcp">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Manos a la obra</div>
+<h2 class="reveal">Tu primer MCP <span class="accent">básico</span></h2>
+<p class="lede reveal">Para construir el servidor más sencillo posible usando <strong>uv</strong>, solo necesitas instalar unas pocas librerías y correr el archivo base.</p>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>Comandos en tu terminal</span><span>Bash</span></div>
+<pre># 1. Instalar las librerías necesarias
+uv add mcp httpx
+
+# 2. Correr el servidor básico
+uv run weather-mcp
+# (O si prefieres el archivo directo: 
+# uv run python basico/main.py)</pre>
+</div>
+</div>
+</section>
+
+<section class="slide" data-step="19" id="mcp-inspector">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Visualizar</div>
+<h2 class="reveal">Probarlo con el <span class="cyan">MCP Inspector</span></h2>
+<p class="lede reveal">El Inspector es la herramienta oficial para probar tu servidor en el navegador. Simula ser el cerebro del modelo y te permite ejecutar herramientas manualmente.</p>
+<div class="steps reveal">
+<div class="step"><div><strong>Ejecutar el Inspector</strong><span>En otra terminal corre:<br><span class="mono">npx -y @modelcontextprotocol/inspector uv run weather-mcp</span></span></div></div>
+<div class="step"><div><strong>Conectar</strong><span>Abre <span class="mono">http://localhost:5173</span> y dale al botón verde "Connect".</span></div></div>
+<div class="step"><div><strong>Probar Herramienta</strong><span>Ve a "Tools", selecciona <span class="mono">get_weather</span> y ejecútala.</span></div></div>
+</div>
+</div>
+<div class="panel reveal">
+<div class="teacher-note"><b>¿Por qué el básico?</b><p>El Inspector aún no tiene interfaz para hacer login de seguridad. Por eso lo probamos con nuestra versión local y sin escudos.</p></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="20" id="seguridad">
 <div class="canvas safe-grid">
 <div class="mini-grid">
 <div class="eyebrow reveal">Seguridad</div>
@@ -1043,7 +1080,7 @@ def get_weather(latitude: float, longitude: float, elevation: float | None = Non
 </div>
 </div>
 </section>
-<section class="slide" data-step="19" id="guion">
+<section class="slide" data-step="21" id="guion">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">Guion sugerido</div>
@@ -1053,7 +1090,7 @@ def get_weather(latitude: float, longitude: float, elevation: float | None = Non
 <div class="timeline reveal"><div class="time-row"><div class="time">0:00</div><div><b>Problema cotidiano</b><p>“Quiero que una IA consulte el clima, pero sin darle acceso libre ni escribir una integración distinta por cada app.”</p></div></div><div class="time-row"><div class="time">1:00</div><div><b>Instalación de uv</b><p>Mostrar que uv se instala como herramienta de terminal. Verificar con <span class="mono">uv --version</span>.</p></div></div><div class="time-row"><div class="time">2:15</div><div><b>pip vs pipx</b><p>Aclarar que pip es para librerías del proyecto y pipx para aplicaciones CLI aisladas.</p></div></div><div class="time-row"><div class="time">3:30</div><div><b>uv como base del proyecto</b><p>Explicar pyproject.toml, uv.lock, .venv y por qué <span class="mono">uv run</span> evita errores de entorno.</p></div></div><div class="time-row"><div class="time">5:30</div><div><b>MCP como protocolo</b><p>Separar host, cliente y servidor. Luego mostrar el problema M×N.</p></div></div><div class="time-row"><div class="time">7:30</div><div><b>Primitivas MCP</b><p>Tools, resources y prompts. Aclarar que en esta demo usamos una tool.</p></div></div><div class="time-row"><div class="time">9:00</div><div><b>Arquitectura</b><p>Seguir la animación de la pregunta: usuario → host → MCP → API → respuesta.</p></div></div><div class="time-row"><div class="time">10:30</div><div><b>Demo</b><p>Ejecutar get_weather, mostrar parámetros, validación y JSON de salida.</p></div></div><div class="time-row"><div class="time">11:30</div><div><b>Cierre</b><p>Preguntar: “¿Qué otro servicio convertirían en MCP y qué validaciones pondrían?”</p></div></div></div>
 </div>
 </section>
-<section class="slide" data-step="20" id="distribucion">
+<section class="slide" data-step="22" id="distribucion">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">Distribución</div>
@@ -1068,7 +1105,7 @@ def get_weather(latitude: float, longitude: float, elevation: float | None = Non
 </div>
 </div>
 </section>
-<section class="slide" data-step="21" id="cloud-transporte">
+<section class="slide" data-step="23" id="cloud-transporte">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">Exponerlo en la nube · 1</div>
@@ -1096,7 +1133,7 @@ def get_weather(latitude: float, longitude: float, elevation: float | None = Non
 </div>
 </div>
 </section>
-<section class="slide" data-step="22" id="cloud-desplegar">
+<section class="slide" data-step="24" id="cloud-desplegar">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">Seguridad en la nube</div>
@@ -1121,7 +1158,7 @@ claude mcp add --transport http secure-mcp \
 </div>
 </div>
 </section>
-<section class="slide" data-step="23" id="oauth-scalekit">
+<section class="slide" data-step="25" id="oauth-scalekit">
 <div class="canvas">
 <div class="mini-grid center">
 <div class="eyebrow reveal">Workflow OAuth 2.1</div>
@@ -1145,7 +1182,7 @@ claude mcp add --transport http secure-mcp \
 </p>
 </div>
 </section>
-<section class="slide" data-step="24" id="config-scalekit">
+<section class="slide" data-step="26" id="config-scalekit">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">Manos a la obra</div>
@@ -1172,7 +1209,7 @@ uv run secure-mcp
 </div>
 </div>
 </section>
-<section class="slide" data-step="25" id="deploy-render">
+<section class="slide" data-step="27" id="deploy-render">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">A la nube</div>
@@ -1202,7 +1239,7 @@ SCALEKIT_CLIENT_SECRET=tu_secret
 </div>
 </div>
 </section>
-<section class="slide" data-step="26" id="usar-claude">
+<section class="slide" data-step="28" id="usar-claude">
 <div class="canvas two">
 <div class="mini-grid">
 <div class="eyebrow reveal">Interacción</div>
@@ -1223,7 +1260,7 @@ SCALEKIT_CLIENT_SECRET=tu_secret
 </div>
 </div>
 </section>
-<section class="slide" data-step="27" id="cierre">
+<section class="slide" data-step="29" id="cierre">
 <div class="canvas">
 <div class="mini-grid center">
 <div class="eyebrow reveal">Cierre activo</div>
@@ -1246,7 +1283,7 @@ SCALEKIT_CLIENT_SECRET=tu_secret
 </section>
 </main>
 <div class="nav-hint">Usa ↑ ↓ o los botones · ⛶ pantalla completa</div>
-<div class="slide-counter" id="slideCounter"><span class="current-num">1</span> / 28</div>
+<div class="slide-counter" id="slideCounter"><span class="current-num">1</span> / 30</div>
 <script>
 (() => {
   const slides = Array.from(document.querySelectorAll('.slide'));
