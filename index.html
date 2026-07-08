@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="description" content="Presentación interactiva sobre MCP (Model Context Protocol), uv y pipx. Aprende a crear un servidor MCP con Python usando weather-mcp como ejemplo real."/>
+<meta property="og:title" content="MCP, uv y pipx — Presentación para clase"/>
+<meta property="og:description" content="Una explicación visual usando un servidor real de clima: weather-mcp. Instalación, proyecto reproducible, protocolo y demo."/>
+<meta property="og:type" content="website"/>
+<meta name="theme-color" content="#07162f"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<title>MCP, uv y pipx — Presentación para clase</title>
+<style>
+  :root {
+    --bg: #07162f;
+    --bg-2: #0b2144;
+    --surface: rgba(255,255,255,.09);
+    --surface-strong: rgba(255,255,255,.15);
+    --card: rgba(255,255,255,.96);
+    --ink: #f5f9ff;
+    --ink-2: #d8e7ff;
+    --muted: #a9c0df;
+    --text-dark: #10213c;
+    --text-muted-dark: #50617c;
+    --line: rgba(255,255,255,.18);
+    --cyan: #35d4ff;
+    --blue: #5b8cff;
+    --gold: #ffc857;
+    --green: #62d68b;
+    --red: #ff7474;
+    --shadow: 0 24px 80px rgba(0,0,0,.28);
+    --radius-xl: 28px;
+    --radius-lg: 22px;
+    --radius-md: 16px;
+    --font-body: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 15% 15%, rgba(53,212,255,.26), transparent 30%),
+      radial-gradient(circle at 85% 20%, rgba(255,200,87,.16), transparent 32%),
+      linear-gradient(145deg, var(--bg), var(--bg-2) 56%, #061126);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  a { color: inherit; }
+  code, pre, .mono { font-family: var(--font-mono); }
+
+  .topbar {
+    position: fixed;
+    z-index: 50;
+    inset: 0 0 auto 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 0 26px;
+    background: rgba(7,22,47,.74);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 26px var(--cyan);
+    flex: 0 0 auto;
+  }
+  .brand strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .progress-wrap { flex: 1; max-width: 360px; height: 7px; border-radius: 999px; background: rgba(255,255,255,.14); overflow: hidden; }
+  .progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--gold)); transition: width .35s ease; }
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  button.ctrl {
+    appearance: none;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    background: rgba(255,255,255,.10);
+    padding: 9px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  button.ctrl:hover { background: rgba(255,255,255,.18); }
+
+  .deck {
+    scroll-snap-type: y mandatory;
+  }
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    padding: 106px 5vw 70px;
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+  .slide::before {
+    content: attr(data-step);
+    position: absolute;
+    right: 5vw;
+    top: 94px;
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: clamp(2.8rem, 9vw, 7.2rem);
+    color: rgba(255,255,255,.055);
+    pointer-events: none;
+  }
+  .canvas {
+    width: min(1160px, 100%);
+    display: grid;
+    gap: 28px;
+  }
+  .two { grid-template-columns: 1.05fr .95fr; align-items: center; }
+  .split { grid-template-columns: 1fr 1fr; }
+  .center { text-align: center; justify-items: center; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    padding: 8px 13px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-2);
+    background: rgba(255,255,255,.08);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: .76rem;
+    font-weight: 800;
+  }
+  .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 18px var(--gold); }
+  h1, h2 { margin: 0; line-height: 1.02; letter-spacing: -.04em; text-wrap: balance; }
+  h1 { font-size: clamp(3rem, 8.3vw, 7.2rem); max-width: 12ch; }
+  h2 { font-size: clamp(2.3rem, 5vw, 4.7rem); max-width: 13ch; }
+  h3 { margin: 0 0 8px; font-size: 1.08rem; }
+  p { margin: 0; color: var(--muted); font-size: 1.05rem; max-width: 70ch; }
+  .lede { font-size: clamp(1.18rem, 2vw, 1.48rem); color: var(--ink-2); max-width: 62ch; }
+  .accent { color: var(--gold); }
+  .cyan { color: var(--cyan); }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    padding: clamp(22px, 4vw, 42px);
+    backdrop-filter: blur(16px);
+  }
+  .white-card {
+    background: var(--card);
+    color: var(--text-dark);
+    border-radius: var(--radius-xl);
+    padding: clamp(22px, 3.8vw, 40px);
+    box-shadow: var(--shadow);
+  }
+  .white-card p, .white-card li, .white-card .muted { color: var(--text-muted-dark); }
+  .mini-grid { display: grid; gap: 16px; }
+  .cards { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card {
+    background: rgba(255,255,255,.10);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .card.light { background: #fff; color: var(--text-dark); border: 0; }
+  .card.light p, .card.light li { color: var(--text-muted-dark); }
+  .card .num {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: inline-grid; place-items: center;
+    background: rgba(53,212,255,.16);
+    color: var(--cyan);
+    font-family: var(--font-mono); font-weight: 900;
+    margin-bottom: 14px;
+  }
+  .big-stat { font-size: clamp(3rem, 9vw, 7rem); line-height: .88; letter-spacing: -.06em; font-weight: 900; color: var(--gold); }
+  .caption { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; color: var(--muted); }
+
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 12px; width: 100%; margin-top: 8px; }
+  .toc-item { text-decoration: none; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.08); transition: transform .2s ease, background .2s ease; }
+  .toc-item:hover { transform: translateY(-4px); background: rgba(255,255,255,.14); }
+  .toc-item span { display: block; color: var(--cyan); font-family: var(--font-mono); font-size: .78rem; margin-bottom: 5px; }
+  .toc-item b { font-size: .95rem; }
+
+  .steps { display: grid; gap: 12px; counter-reset: item; }
+  .step {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,.09);
+    border: 1px solid var(--line);
+  }
+  .step::before {
+    counter-increment: item;
+    content: counter(item);
+    width: 38px; height: 38px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    color: #051328;
+    font-family: var(--font-mono); font-weight: 900;
+  }
+  .step strong { display: block; color: var(--ink); margin-bottom: 3px; }
+  .step span { color: var(--muted); }
+
+  .pipeline {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 12px 0 0;
+  }
+  .pipe-card {
+    position: relative;
+    z-index: 1;
+    min-height: 154px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: rgba(255,255,255,.96);
+    color: var(--text-dark);
+    border-radius: 24px;
+    padding: 20px;
+    overflow: hidden;
+  }
+  .pipe-card small { font-family: var(--font-mono); color: #6f7f98; font-weight: 800; }
+  .pipe-card b { font-size: 1.25rem; }
+  .pipe-card p { font-size: .92rem; color: #50617c; }
+  .pipe-line {
+    position: absolute;
+    left: 10%; right: 10%; top: 50%; height: 4px;
+    background: rgba(255,255,255,.25);
+    border-radius: 999px;
+  }
+  .token {
+    position: absolute;
+    top: calc(50% - 10px);
+    left: 8%;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 24px var(--gold);
+    animation: move-token 6s ease-in-out infinite;
+  }
+  @keyframes move-token {
+    0%, 8% { left: 8%; }
+    30% { left: 32%; }
+    55% { left: 57%; }
+    82%, 100% { left: 85%; }
+  }
+
+  .matrix-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .matrix-box {
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: var(--radius-xl);
+    padding: 26px;
+    overflow: hidden;
+  }
+  .matrix-title { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin-bottom: 18px; }
+  .matrix-title b { font-size: 1.25rem; }
+  .badge { padding: 5px 10px; border-radius: 999px; font-family: var(--font-mono); font-size: .72rem; font-weight: 900; background: #eef4ff; color: #3159a8; }
+  .dotgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+  .cell { aspect-ratio: 1; border-radius: 13px; display: grid; place-items: center; font-weight: 900; color: white; font-family: var(--font-mono); }
+  .cell.bad { background: linear-gradient(135deg, #ff7676, #c74355); }
+  .cell.good { background: linear-gradient(135deg, #62d68b, #219c69); }
+  .cell.off { background: #e6ecf5; color: #95a1b4; }
+  .bus-vis { height: 230px; position: relative; }
+  .bus { position: absolute; inset: 44% 12% auto 12%; height: 22px; border-radius: 999px; background: linear-gradient(90deg, var(--cyan), var(--gold)); box-shadow: 0 12px 35px rgba(53,212,255,.24); }
+  .bus-node { position: absolute; width: 88px; height: 48px; border-radius: 15px; background: #eef4ff; display: grid; place-items: center; font-weight: 900; }
+  .bus-node:nth-child(1) { left: 0; top: 0; }
+  .bus-node:nth-child(2) { left: calc(50% - 44px); top: 0; }
+  .bus-node:nth-child(3) { right: 0; top: 0; }
+  .bus-node:nth-child(4) { left: 9%; bottom: 0; }
+  .bus-node:nth-child(5) { left: calc(50% - 44px); bottom: 0; }
+  .bus-node:nth-child(6) { right: 9%; bottom: 0; }
+  .bus-line { position: absolute; width: 2px; background: #d6dfef; top: 48px; bottom: 48px; }
+  .bus-line.l1 { left: 44px; }
+  .bus-line.l2 { left: 50%; }
+  .bus-line.l3 { right: 44px; }
+  .bus-line.l4 { left: calc(9% + 44px); }
+  .bus-line.l5 { right: calc(9% + 44px); }
+
+  .flow {
+    position: relative;
+    min-height: 320px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
+  .flow-node {
+    position: relative;
+    z-index: 2;
+    min-height: 166px;
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: 24px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 18px 45px rgba(0,0,0,.18);
+  }
+  .flow-node .icon { font-size: 2rem; margin-bottom: 8px; }
+  .flow-node small { font-family: var(--font-mono); color: #6e7d94; font-weight: 800; text-transform: uppercase; }
+  .flow-node b { font-size: 1.02rem; }
+  .flow-node p { font-size: .84rem; color: #53637c; margin-top: 6px; }
+  .flow-line {
+    position: absolute;
+    left: 8%; right: 8%; top: 50%; height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.28);
+  }
+  .packet {
+    position: absolute;
+    z-index: 3;
+    top: calc(50% - 16px);
+    left: 7%;
+    width: 32px; height: 32px;
+    border-radius: 12px;
+    background: var(--gold);
+    box-shadow: 0 0 25px rgba(255,200,87,.8);
+    animation: packet 7s cubic-bezier(.55,0,.15,1) infinite;
+  }
+  @keyframes packet {
+    0%, 7% { left: 7%; transform: rotate(0deg); }
+    25% { left: 27%; transform: rotate(12deg); }
+    45% { left: 47%; transform: rotate(-8deg); }
+    65% { left: 67%; transform: rotate(9deg); }
+    86%,100% { left: 87%; transform: rotate(0deg); }
+  }
+
+  .compare-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .compare-card { background: #fff; color: var(--text-dark); border-radius: var(--radius-xl); padding: 26px; }
+  .compare-card.bad { border-top: 8px solid var(--red); }
+  .compare-card.good { border-top: 8px solid var(--green); }
+  .compare-card ul { margin: 14px 0 0; padding-left: 22px; }
+  .compare-card li { margin: 10px 0; color: var(--text-muted-dark); }
+
+  .code-wrap {
+    background: #06111f;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .code-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,.08);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: .78rem;
+  }
+  pre {
+    margin: 0;
+    padding: 20px;
+    overflow-x: auto;
+    color: #dceaff;
+    font-size: .9rem;
+    line-height: 1.6;
+  }
+  .code-note { display: grid; gap: 12px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    width: fit-content;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(53,212,255,.14);
+    color: var(--ink-2);
+    font-family: var(--font-mono); font-size: .76rem; font-weight: 900;
+  }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); }
+
+  .safe-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 20px; align-items: stretch; }
+  .risk-bars { display: grid; align-content: center; gap: 14px; }
+  .risk-row { display: grid; grid-template-columns: 130px 1fr 54px; gap: 10px; align-items: center; }
+  .risk-row span { color: var(--ink-2); font-weight: 800; }
+  .bar-bg { height: 15px; background: rgba(255,255,255,.15); border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), var(--cyan)); width: var(--w); }
+  .bar-fill.warn { background: linear-gradient(90deg, var(--red), var(--gold)); }
+  .percent { font-family: var(--font-mono); color: var(--muted); }
+
+  .timeline { display: grid; gap: 12px; }
+  .time-row {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 16px;
+    align-items: stretch;
+    background: rgba(255,255,255,.08);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 14px;
+  }
+  .time { display: grid; place-items: center; border-radius: 15px; background: rgba(255,200,87,.14); color: var(--gold); font-family: var(--font-mono); font-weight: 900; }
+  .time-row b { display: block; margin-bottom: 2px; }
+
+  .quiz { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+  .quiz .card { min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; }
+  .answer { color: var(--green); font-weight: 900; opacity: 0; transform: translateY(8px); transition: .25s ease; }
+  .card:hover .answer { opacity: 1; transform: translateY(0); }
+
+  .slide .reveal { opacity: 0; transform: translateY(24px); transition: opacity .55s ease, transform .55s ease; }
+  .slide.active .reveal { opacity: 1; transform: translateY(0); }
+  .slide.active .reveal:nth-child(2) { transition-delay: .08s; }
+  .slide.active .reveal:nth-child(3) { transition-delay: .16s; }
+  .slide.active .reveal:nth-child(4) { transition-delay: .24s; }
+  .slide.active .reveal:nth-child(5) { transition-delay: .32s; }
+
+  .nav-hint {
+    position: fixed;
+    left: 26px;
+    bottom: 22px;
+    z-index: 40;
+    display: flex;
+    gap: 8px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: .76rem;
+    background: rgba(7,22,47,.6);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 12px;
+    backdrop-filter: blur(10px);
+  }
+  .slide-counter {
+    position: fixed;
+    right: 26px;
+    bottom: 22px;
+    z-index: 40;
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    font-weight: 800;
+    color: var(--muted);
+    background: rgba(7,22,47,.6);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 16px;
+    backdrop-filter: blur(10px);
+  }
+  .slide-counter .current-num { color: var(--cyan); }
+
+
+
+  /* ---------- Ampliaciones didácticas ---------- */
+  .teacher-note {
+    border-left: 5px solid var(--gold);
+    background: rgba(255,200,87,.12);
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+  .teacher-note b { display: block; margin-bottom: 4px; color: var(--ink); }
+  .term-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 16px; }
+  .term-card {
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: 22px;
+    padding: 22px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.14);
+    min-height: 190px;
+  }
+  .term-card small {
+    display: inline-flex;
+    margin-bottom: 12px;
+    color: #3159a8;
+    background: #eef4ff;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  .term-card h3 { font-size: 1.22rem; }
+  .term-card p { color: var(--text-muted-dark); font-size: .96rem; }
+  .file-stack { display: grid; gap: 14px; }
+  .file-card {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 18px;
+    align-items: center;
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: 22px;
+    padding: 18px;
+  }
+  .file-name {
+    min-height: 74px;
+    border-radius: 18px;
+    background: #eef4ff;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 10px;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    color: #3159a8;
+  }
+  .file-card p { color: var(--text-muted-dark); font-size: .92rem; }
+  .command-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+  .command-row {
+    background: rgba(255,255,255,.10);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px;
+  }
+  .command-row code { display: inline-block; color: var(--gold); margin-bottom: 8px; font-weight: 900; }
+  .command-row p { font-size: .92rem; }
+  .layer-stack { display: grid; gap: 14px; }
+  .layer {
+    display: grid;
+    grid-template-columns: 115px 1fr;
+    gap: 16px;
+    align-items: center;
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: 22px;
+    padding: 18px;
+  }
+  .layer .label {
+    min-height: 70px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #eef4ff, #dbe8ff);
+    font-weight: 900;
+    color: #3159a8;
+  }
+  .layer p { color: var(--text-muted-dark); font-size: .92rem; }
+  .mcp-actors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .actor-card {
+    position: relative;
+    min-height: 225px;
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: 24px;
+    padding: 24px;
+    overflow: hidden;
+  }
+  .actor-card::after {
+    content: attr(data-symbol);
+    position: absolute;
+    right: 16px;
+    bottom: -18px;
+    font-size: 5.5rem;
+    opacity: .10;
+  }
+  .actor-card small { font-family: var(--font-mono); color: #3159a8; font-weight: 900; text-transform: uppercase; }
+  .actor-card p { color: var(--text-muted-dark); font-size: .96rem; }
+  .primitive-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+  .primitive {
+    background: rgba(255,255,255,.10);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 20px;
+  }
+  .primitive strong { display: block; font-size: 1.2rem; margin-bottom: 6px; }
+  .primitive em { color: var(--gold); font-style: normal; font-weight: 900; }
+  .call-chain { display: grid; gap: 11px; counter-reset: call; }
+  .call-step {
+    display: grid;
+    grid-template-columns: 54px 1fr;
+    gap: 14px;
+    align-items: start;
+    background: #fff;
+    color: var(--text-dark);
+    border-radius: 18px;
+    padding: 14px;
+  }
+  .call-step::before {
+    counter-increment: call;
+    content: counter(call);
+    width: 42px; height: 42px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    color: #051328;
+    background: var(--gold);
+    font-family: var(--font-mono); font-weight: 900;
+  }
+  .call-step p { color: var(--text-muted-dark); font-size: .9rem; }
+  .vocab { display: flex; flex-wrap: wrap; gap: 10px; }
+  .vocab span {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 12px;
+    background: rgba(255,255,255,.08);
+    font-weight: 800;
+  }
+  @media (max-width: 900px) {
+    .term-grid, .command-grid, .mcp-actors, .primitive-grid { grid-template-columns: 1fr; }
+    .file-card, .layer { grid-template-columns: 1fr; }
+    .two, .split, .compare-cols, .matrix-demo, .safe-grid, .quiz { grid-template-columns: 1fr; }
+    .pipeline { grid-template-columns: 1fr; }
+    .pipe-line, .token { display: none; }
+    .flow { grid-template-columns: 1fr; }
+    .flow-line, .packet { display: none; }
+    .topbar { padding: 0 14px; }
+    .progress-wrap { max-width: 160px; }
+    .brand strong { max-width: 170px; }
+    button.ctrl span { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .slide .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+<div class="brand"><span class="brand-dot"></span><strong>MCP + uv + pipx · weather-mcp</strong></div>
+<div aria-label="Progreso de la presentación" class="progress-wrap"><div class="progress" id="progress"></div></div>
+<div class="top-actions">
+<button aria-label="Diapositiva anterior" class="ctrl" id="prev">↑ <span>Anterior</span></button>
+<button aria-label="Diapositiva siguiente" class="ctrl" id="next">↓ <span>Siguiente</span></button>
+<button aria-label="Pantalla completa" class="ctrl" id="full">⛶</button>
+</div>
+</header>
+<main class="deck" id="deck">
+<section class="slide active" data-step="00" id="inicio">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Presentación para estudiantes</div>
+<h1 class="reveal">MCP, <span class="accent">uv</span> y pipx sin perderse</h1>
+<p class="lede reveal">Una explicación visual usando un servidor real de clima: <strong>weather-mcp</strong>. La clase avanza como historia: instalación → proyecto reproducible → protocolo → flujo → demo.</p>
+<div class="cards reveal">
+<div class="card"><div class="num">1</div><h3>uv</h3><p>Cómo instalar, fijar y correr dependencias sin activar entornos a mano.</p></div>
+<div class="card"><div class="num">2</div><h3>pipx</h3><p>Por qué las herramientas de terminal deben vivir aisladas y no mezclarse con paquetes del proyecto.</p></div>
+<div class="card"><div class="num">3</div><h3>MCP</h3><p>Cómo un modelo usa herramientas externas con un contrato común y seguro.</p></div>
+</div>
+</div>
+<div class="panel reveal">
+<p class="caption">Ruta sugerida de clase</p>
+<div class="toc-grid"><a class="toc-item" href="#mapa"><span>01</span><b>Mapa mental</b></a><a class="toc-item" href="#uv-que-es"><span>02</span><b>uv explicado</b></a><a class="toc-item" href="#uv-instalacion"><span>03</span><b>Instalar uv</b></a><a class="toc-item" href="#pipx-vs-pip"><span>04</span><b>pip vs pipx</b></a><a class="toc-item" href="#uv-problema"><span>05</span><b>Problema de Python</b></a><a class="toc-item" href="#uv-archivos"><span>06</span><b>Archivos clave</b></a><a class="toc-item" href="#uv-flujo"><span>07</span><b>Movimiento de uv</b></a><a class="toc-item" href="#uv-comandos"><span>08</span><b>Comandos esenciales</b></a><a class="toc-item" href="#mcp-que-es"><span>09</span><b>MCP explicado</b></a><a class="toc-item" href="#mcp-problema"><span>10</span><b>Problema M×N</b></a><a class="toc-item" href="#mcp-actores"><span>11</span><b>Host · cliente · servidor</b></a><a class="toc-item" href="#mcp-primitivas"><span>12</span><b>Tools, resources, prompts</b></a><a class="toc-item" href="#mcp-api"><span>13</span><b>MCP vs. API directa</b></a><a class="toc-item" href="#mcp-ciclo"><span>14</span><b>Ciclo de una llamada</b></a><a class="toc-item" href="#arquitectura"><span>15</span><b>Arquitectura animada</b></a><a class="toc-item" href="#demo"><span>16</span><b>Demo: get_weather</b></a><a class="toc-item" href="#json"><span>17</span><b>Entrada y salida JSON</b></a><a class="toc-item" href="#seguridad"><span>18</span><b>Seguridad</b></a><a class="toc-item" href="#guion"><span>19</span><b>Guion de clase</b></a><a class="toc-item" href="#distribucion"><span>20</span><b>Distribución</b></a><a class="toc-item" href="#cloud-transporte"><span>21</span><b>stdio vs. HTTP</b></a><a class="toc-item" href="#cloud-desplegar"><span>22</span><b>Desplegar y proteger</b></a><a class="toc-item" href="#cierre"><span>23</span><b>Quiz de cierre</b></a></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="01" id="mapa">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Idea central</div>
+<h2 class="reveal">Dos problemas, dos soluciones</h2>
+<p class="lede reveal">Para que los estudiantes no mezclen conceptos, separa la clase en tres capas: <strong>uv organiza el proyecto Python</strong>; <strong>pipx instala aplicaciones de terminal en entornos aislados</strong>; <strong>MCP organiza la comunicación entre IA y herramientas</strong>.</p>
+</div>
+<div class="white-card reveal">
+<div class="cards"><div class="card light"><div class="big-stat">uv</div><h3>Entorno reproducible</h3><p>Declara dependencias, genera lockfile, crea el entorno y ejecuta comandos.</p></div><div class="card light"><div class="big-stat">pipx</div><h3>Herramientas aisladas</h3><p>Instala aplicaciones CLI sin ensuciar el Python global ni el entorno del proyecto.</p></div><div class="card light"><div class="big-stat">MCP</div><h3>Protocolo de herramientas</h3><p>Le dice al modelo qué herramientas existen, qué parámetros reciben y cómo llamarlas.</p></div></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="02" id="uv-que-es">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Parte 1 · uv</div>
+<h2 class="reveal">uv no es solo un <span class="accent">pip más rápido</span></h2>
+<p class="lede reveal">La idea clave para los estudiantes: <strong>uv administra el ciclo completo de un proyecto Python</strong>. Crea el entorno, resuelve dependencias, congela versiones, ejecuta comandos y ayuda a empaquetar.</p>
+<div class="teacher-note reveal"><b>Analogía para clase</b><p>pip instala paquetes; uv se parece más a un “director de obra”: mira los planos del proyecto, consigue los materiales exactos, prepara el taller y ejecuta el trabajo en el entorno correcto.</p></div>
+</div>
+<div class="term-grid reveal">
+<div class="term-card"><small>Instalación</small><h3>Paquetes</h3><p>Agrega o quita librerías con <span class="mono">uv add</span> y <span class="mono">uv remove</span>, sin editar archivos críticos a mano.</p></div>
+<div class="term-card"><small>Entorno</small><h3>.venv automático</h3><p>Puede crear y usar el entorno virtual del proyecto, evitando el clásico “en mi computador sí funciona”.</p></div>
+<div class="term-card"><small>Reproducibilidad</small><h3>uv.lock</h3><p>Guarda versiones exactas del árbol completo de dependencias para que todos instalen lo mismo.</p></div>
+<div class="term-card"><small>Ejecución</small><h3>uv run</h3><p>Corre comandos dentro del entorno correcto, incluso si el estudiante olvidó activar el virtualenv.</p></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="03" id="uv-instalacion">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Instalación clara</div>
+<h2 class="reveal">Cómo instalar <span class="accent">uv</span> sin confundirlo con pip</h2>
+<p class="lede reveal">La recomendación didáctica es instalar uv como una <strong>herramienta de terminal</strong>, no como una librería del proyecto. Así queda disponible como comando global: <span class="mono">uv</span>.</p>
+<div class="teacher-note reveal"><b>Frase para clase</b><p>“pip instala paquetes dentro de un Python; uv es una herramienta que administra proyectos Python completos”.</p></div>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>Instalación recomendada</span><span>copiar y pegar</span></div>
+<pre># macOS / Linux: instalador oficial de Astral
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# macOS con Homebrew
+brew install uv
+
+# Windows PowerShell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# verificar que quedó en el PATH
+uv --version</pre>
+</div>
+</div>
+</section>
+
+<section class="slide" data-step="04" id="pipx-vs-pip">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">pip · pipx · uvx</div>
+<h2 class="reveal">Por qué usar <span class="cyan">pipx</span> en lugar de pip para herramientas</h2>
+<p class="lede reveal">La confusión más común es usar <span class="mono">pip install</span> para todo. Para librerías de un proyecto está bien; para aplicaciones de terminal es mejor aislarlas con <span class="mono">pipx</span>.</p>
+</div>
+<div class="compare-cols reveal">
+<div class="compare-card bad">
+<h3>Instalar una CLI con pip global</h3>
+<ul>
+<li>Puede mezclar herramientas con librerías del proyecto.</li>
+<li>Puede generar conflictos entre versiones.</li>
+<li>A veces requiere permisos del sistema o modifica el Python global.</li>
+<li>Es más difícil saber qué paquete instaló qué comando.</li>
+<li><strong>Ejemplo a evitar:</strong> <span class="mono">pip install uv</span> en el Python global.</li>
+</ul>
+</div>
+<div class="compare-card good">
+<h3>Instalar una CLI con pipx</h3>
+<ul>
+<li>Crea un entorno virtual independiente para cada aplicación.</li>
+<li>Expone solo el comando en el PATH.</li>
+<li>No contamina el entorno del proyecto.</li>
+<li>Permite actualizar o desinstalar la herramienta de forma limpia.</li>
+<li><strong>Ejemplo válido:</strong> <span class="mono">pipx install uv</span>.</li>
+</ul>
+</div>
+</div>
+<div class="command-grid reveal">
+<div class="command-row"><code>pip install requests</code><p>Úsalo dentro de un entorno/proyecto cuando quieres instalar una <strong>librería importable</strong>.</p></div>
+<div class="command-row"><code>pipx install uv</code><p>Úsalo cuando quieres instalar una <strong>aplicación de terminal</strong> y mantenerla aislada.</p></div>
+<div class="command-row"><code>uvx ruff check .</code><p>Úsalo para ejecutar una herramienta una sola vez, en un entorno temporal.</p></div>
+<div class="command-row"><code>uv add mcp</code><p>Úsalo dentro del proyecto para declarar una dependencia del código.</p></div>
+</div>
+</div>
+</section>
+
+<section class="slide" data-step="05" id="uv-problema">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">El problema real</div>
+<h2 class="reveal">Por qué <span class="accent">requirements.txt</span> se queda corto</h2>
+<p class="lede reveal">Un <span class="mono">requirements.txt</span> puede servir para proyectos simples, pero en clase conviene mostrar sus límites: no describe el proyecto completo, no separa claramente dependencias directas/transitivas y no resuelve el problema de las herramientas globales. Ahí entran <strong>uv</strong> para el proyecto y <strong>pipx</strong> para las aplicaciones de terminal.</p>
+<div class="teacher-note reveal"><b>Pregunta para activar la clase</b><p>“Si yo instalo hoy y ustedes instalan dentro de dos meses, ¿podemos estar seguros de que tendremos exactamente las mismas versiones?”</p></div>
+</div>
+<div class="compare-cols reveal">
+<div class="compare-card bad">
+<h3>Flujo clásico</h3>
+<ul>
+<li><strong>python -m venv .venv</strong>: crear entorno.</li>
+<li><strong>source .venv/bin/activate</strong>: activarlo manualmente.</li>
+<li><strong>pip install</strong>: instalar paquetes.</li>
+<li><strong>pip freeze</strong>: exportar todo, mezclando paquetes principales y paquetes secundarios.</li>
+<li><strong>Problema:</strong> es fácil olvidar pasos o subir un archivo desactualizado.</li>
+</ul>
+</div>
+<div class="compare-card good">
+<h3>Flujo con uv</h3>
+<ul>
+<li><strong>uv init</strong>: crea estructura del proyecto.</li>
+<li><strong>uv add</strong>: declara dependencia directa.</li>
+<li><strong>uv lock</strong>: resuelve árbol completo.</li>
+<li><strong>uv sync</strong>: instala exactamente lo bloqueado.</li>
+<li><strong>uv run</strong>: ejecuta usando el entorno correcto.</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="06" id="uv-archivos">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Archivos clave</div>
+<h2 class="reveal">Qué papel cumple cada archivo</h2>
+<p class="lede reveal">Esta diapositiva evita una confusión común: <strong>pyproject.toml</strong> no cumple el mismo papel que <strong>uv.lock</strong>. Uno declara intención; el otro congela una resolución exacta.</p>
+</div>
+<div class="file-stack reveal">
+<div class="file-card"><div class="file-name">pyproject.toml</div><div><h3>El contrato editable del proyecto</h3><p>Nombre, versión, versión mínima de Python, dependencias directas y scripts/entry points. Este archivo sí se revisa y se entiende.</p></div></div>
+<div class="file-card"><div class="file-name">uv.lock</div><div><h3>La foto exacta del entorno</h3><p>Versiones concretas, dependencias transitivas y datos de resolución. Normalmente no se edita a mano; uv lo actualiza.</p></div></div>
+<div class="file-card"><div class="file-name">.venv/</div><div><h3>El entorno local</h3><p>Carpeta generada en cada máquina. No se sube a Git. Se puede borrar y reconstruir con <span class="mono">uv sync</span>.</p></div></div>
+<div class="file-card"><div class="file-name">.python-version</div><div><h3>La versión de Python esperada</h3><p>Ayuda a que todos trabajen con una versión compatible, por ejemplo Python 3.12.</p></div></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="07" id="uv-flujo">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">Movimiento claro</div>
+<h2 class="reveal">Cómo se mueve <span class="cyan">uv</span> dentro del proyecto</h2>
+<p class="lede reveal">El punto amarillo muestra el recorrido didáctico: una decisión humana entra al proyecto, uv resuelve el árbol de dependencias, sincroniza el entorno y ejecuta el servidor.</p>
+</div>
+<div class="panel reveal">
+<div aria-label="Flujo de uv" class="pipeline">
+<div class="pipe-line"></div>
+<div class="token"></div>
+<div class="pipe-card"><small>1 · Declaras</small><b>pyproject.toml</b><p>“Mi proyecto necesita mcp, certifi y una versión compatible de Python”.</p></div>
+<div class="pipe-card"><small>2 · Resuelve</small><b>uv.lock</b><p>uv calcula versiones exactas y dependencias transitivas.</p></div>
+<div class="pipe-card"><small>3 · Sincroniza</small><b>.venv</b><p>Instala el entorno local exactamente según el lockfile.</p></div>
+<div class="pipe-card"><small>4 · Ejecuta</small><b>uv run</b><p>Corre <span class="mono">weather-mcp</span> sin activar nada a mano.</p></div>
+</div>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>Terminal</span><span>secuencia para explicar en vivo</span></div>
+<pre>uv init weather-mcp          # crea un proyecto Python moderno
+uv add "mcp[cli]&gt;=1.28.0"   # agrega MCP como dependencia directa
+uv add certifi               # agrega certificados para HTTPS seguro
+uv sync                      # reproduce el entorno exacto desde uv.lock
+uv run weather-mcp           # ejecuta el servidor definido en pyproject.toml</pre>
+</div>
+</div>
+</section>
+<section class="slide" data-step="08" id="uv-comandos">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Comandos esenciales</div>
+<h2 class="reveal">Qué comando usar según la situación</h2>
+<p class="lede reveal">Para estudiantes, conviene enseñarlo por intención y no como lista suelta de comandos. Cada comando responde a una pregunta concreta del desarrollador.</p>
+<div class="teacher-note reveal"><b>Regla simple</b><p>Si vas a cambiar dependencias del proyecto, usa <span class="mono">uv add/remove</span>. Si vas a reconstruir el entorno, usa <span class="mono">uv sync</span>. Si vas a ejecutar el proyecto, usa <span class="mono">uv run</span>. Si vas a instalar una herramienta global de Python, usa <span class="mono">pipx</span> o el instalador oficial.</p></div>
+</div>
+<div class="command-grid reveal">
+<div class="command-row"><code>uv init</code><p>Crear un proyecto desde cero con estructura moderna.</p></div>
+<div class="command-row"><code>uv add paquete</code><p>Agregar una dependencia directa y actualizar el lockfile.</p></div>
+<div class="command-row"><code>uv add --dev pytest</code><p>Agregar herramientas solo para desarrollo o pruebas.</p></div>
+<div class="command-row"><code>uv remove paquete</code><p>Quitar una dependencia y recalcular el entorno.</p></div>
+<div class="command-row"><code>uv sync</code><p>Reconstruir el entorno exactamente como dice <span class="mono">uv.lock</span>.</p></div>
+<div class="command-row"><code>uv run comando</code><p>Ejecutar dentro del entorno correcto sin activarlo manualmente.</p></div>
+<div class="command-row"><code>uvx herramienta</code><p>Probar una CLI de Python en entorno temporal sin instalarla globalmente.</p></div>
+<div class="command-row"><code>uv build</code><p>Construir el paquete distribuible cuando se quiere publicar.</p></div>
+
+<div class="command-row"><code>pipx install uv</code><p>Instala uv como aplicación aislada cuando no usas el instalador oficial ni Homebrew.</p></div>
+<div class="command-row"><code>pipx list</code><p>Muestra qué aplicaciones de terminal están instaladas con pipx y en qué entornos viven.</p></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="09" id="mcp-que-es">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Parte 2 · MCP</div>
+<h2 class="reveal">MCP es el <span class="accent">USB-C</span> de las herramientas de IA</h2>
+<p class="lede reveal">MCP es un estándar abierto para que una aplicación de IA descubra y use capacidades externas de forma ordenada. La palabra clave es <strong>protocolo</strong>: no es una API específica, ni un modelo, ni una base de datos.</p>
+<div class="teacher-note reveal"><b>Frase para clase</b><p>“MCP no le da inteligencia al modelo; le da un camino ordenado para usar capacidades externas”.</p></div>
+</div>
+<div class="layer-stack reveal">
+<div class="layer"><div class="label">Modelo</div><div><h3>Razona y decide</h3><p>Interpreta la pregunta del usuario y decide si necesita una herramienta.</p></div></div>
+<div class="layer"><div class="label">Host</div><div><h3>Orquesta la experiencia</h3><p>Claude Code, Codex u otra app muestra la conversación, conecta servidores y gestiona permisos.</p></div></div>
+<div class="layer"><div class="label">MCP</div><div><h3>Protocolo común</h3><p>Define mensajes, capacidades, tools, recursos, prompts y transporte.</p></div></div>
+<div class="layer"><div class="label">Servidor</div><div><h3>Integra el mundo externo</h3><p>Implementa la lógica: consulta Open-Meteo, valida datos y devuelve una respuesta estructurada.</p></div></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="10" id="mcp-problema">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">El problema M×N</div>
+<h2 class="reveal">Sin MCP, todo se vuelve integración a mano</h2>
+<p class="lede reveal">Si hay muchos clientes de IA y muchas herramientas, escribir conectores uno por uno se vuelve costoso. MCP propone que cada herramienta hable un estándar común.</p>
+</div>
+<div class="matrix-demo reveal">
+<div class="matrix-box">
+<div class="matrix-title"><b>Sin MCP</b><span class="badge">12 integraciones</span></div>
+<div aria-label="Matriz de integraciones sin MCP" class="dotgrid">
+<div class="cell bad">1</div><div class="cell bad">2</div><div class="cell bad">3</div><div class="cell bad">4</div>
+<div class="cell bad">5</div><div class="cell bad">6</div><div class="cell bad">7</div><div class="cell bad">8</div>
+<div class="cell bad">9</div><div class="cell bad">10</div><div class="cell bad">11</div><div class="cell bad">12</div>
+</div>
+<p style="margin-top:18px">Tres hosts × cuatro herramientas = doce integraciones personalizadas.</p>
+</div>
+<div class="matrix-box">
+<div class="matrix-title"><b>Con MCP</b><span class="badge">un estándar</span></div>
+<div aria-label="Bus común con MCP" class="bus-vis">
+<div class="bus-node">Claude</div><div class="bus-node">Codex</div><div class="bus-node">IDE</div>
+<div class="bus-node">Clima</div><div class="bus-node">DB</div><div class="bus-node">GitHub</div>
+<div class="bus-line l1"></div><div class="bus-line l2"></div><div class="bus-line l3"></div><div class="bus-line l4"></div><div class="bus-line l5"></div><div class="bus"></div>
+</div>
+<p>Los clientes no necesitan saber los detalles internos de cada API: se conectan al servidor MCP.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="11" id="mcp-actores">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">Actores del protocolo</div>
+<h2 class="reveal">Host, cliente y servidor no son lo mismo</h2>
+<p class="lede reveal">Esta distinción hace que MCP se entienda mucho mejor. En una exposición, dedica un minuto solo a separar estos tres roles.</p>
+</div>
+<div class="mcp-actors reveal">
+<div class="actor-card" data-symbol="🧠"><small>Host</small><h3>La aplicación de IA</h3><p>Es donde vive la experiencia del usuario: Claude Code, Codex, un IDE o una app propia. Decide qué servidores se conectan y cómo se muestra la respuesta.</p></div>
+<div class="actor-card" data-symbol="🔁"><small>Cliente MCP</small><h3>El conector interno</h3><p>Es la pieza dentro del host que mantiene una sesión con el servidor MCP, negocia capacidades y envía solicitudes.</p></div>
+<div class="actor-card" data-symbol="🔌"><small>Servidor MCP</small><h3>La herramienta externa</h3><p>Es el programa que tú escribes. Expone tools, recursos o prompts; en este caso, <span class="mono">weather-mcp</span> expone <span class="mono">get_weather</span>.</p></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="12" id="mcp-primitivas">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Qué puede exponer un servidor</div>
+<h2 class="reveal">MCP no es solo <span class="accent">tools</span></h2>
+<p class="lede reveal">Para esta demo usamos una tool, pero MCP puede organizar varios tipos de contexto. Esto ayuda a que los estudiantes no reduzcan MCP a “llamar funciones”.</p>
+<div class="vocab reveal"><span>Tools</span><span>Resources</span><span>Prompts</span><span>Transports</span><span>Capabilities</span></div>
+</div>
+<div class="primitive-grid reveal">
+<div class="primitive"><strong>Tools <em>acciones</em></strong><p>Funciones que el modelo puede pedir ejecutar, como <span class="mono">get_weather(latitude, longitude)</span>.</p></div>
+<div class="primitive"><strong>Resources <em>datos</em></strong><p>Información que el servidor puede ofrecer, como archivos, registros, documentación o resultados de consulta.</p></div>
+<div class="primitive"><strong>Prompts <em>plantillas</em></strong><p>Flujos o instrucciones reutilizables que ayudan a ejecutar tareas frecuentes con estructura.</p></div>
+<div class="primitive"><strong>Transports <em>canal</em></strong><p>La forma como viajan los mensajes. En esta demo local usamos stdio; en otros casos puede haber transporte remoto.</p></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="13" id="mcp-api">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Comparación didáctica</div>
+<h2 class="reveal">MCP no reemplaza la API: la <span class="accent">envuelve</span></h2>
+<p class="lede reveal">La API externa sigue existiendo. MCP agrega una capa reusable, validada y entendible para el modelo. Así el modelo no inventa URLs, no maneja credenciales y no interpreta respuestas crudas.</p>
+</div>
+<div class="steps reveal">
+<div class="step"><div><strong>Contrato tipado</strong><span>El modelo ve nombre, descripción, parámetros y tipos esperados.</span></div></div>
+<div class="step"><div><strong>Validación fuera del prompt</strong><span>El servidor valida latitud y longitud antes de llamar a Open-Meteo.</span></div></div>
+<div class="step"><div><strong>Reutilización</strong><span>Claude Code, Codex u otro host usan el mismo servidor sin reescribir la integración.</span></div></div>
+<div class="step"><div><strong>Control y permisos</strong><span>El usuario decide qué servidores conecta; el host puede pedir aprobación antes de acciones sensibles.</span></div></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="14" id="mcp-ciclo">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Qué pasa por debajo</div>
+<h2 class="reveal">Ciclo de una llamada a una tool</h2>
+<p class="lede reveal">Esta es la explicación paso a paso para que el movimiento de MCP quede claro. El modelo no “sale a internet”; pide ejecutar una herramienta que vive en un servidor.</p>
+<div class="teacher-note reveal"><b>Frase clave</b><p>“El modelo propone la llamada; el host la administra; el servidor la ejecuta; la API responde”.</p></div>
+</div>
+<div class="call-chain reveal">
+<div class="call-step"><div><h3>El host lee la configuración</h3><p>Encuentra que existe un servidor llamado <span class="mono">weather-mcp</span>.</p></div></div>
+<div class="call-step"><div><h3>Arranca el servidor</h3><p>Lo ejecuta como proceso local, por ejemplo con <span class="mono">uv run weather-mcp</span>.</p></div></div>
+<div class="call-step"><div><h3>Descubre capacidades</h3><p>El cliente MCP pregunta qué tools, recursos o prompts están disponibles.</p></div></div>
+<div class="call-step"><div><h3>El modelo decide llamar</h3><p>Con la pregunta del usuario, el modelo elige <span class="mono">get_weather</span> y propone parámetros.</p></div></div>
+<div class="call-step"><div><h3>El servidor ejecuta</h3><p>Valida entrada, consulta Open-Meteo y devuelve un resultado estructurado.</p></div></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="15" id="arquitectura">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">Arquitectura animada</div>
+<h2 class="reveal">Cómo viaja una pregunta</h2>
+<p class="lede reveal">El paquete amarillo representa la solicitud. Observa que el host habla con el servidor MCP por stdio/JSON-RPC, y solo el servidor sale a internet por HTTPS.</p>
+</div>
+<div class="panel reveal">
+<div aria-label="Flujo de pregunta de clima" class="flow">
+<div class="flow-line"></div>
+<div class="packet"></div>
+<div class="flow-node"><div class="icon">💬</div><small>Usuario</small><b>Pregunta</b><p>“¿Qué clima hace en Bogotá?”</p></div>
+<div class="flow-node"><div class="icon">🧠</div><small>Host</small><b>Claude Code / Codex</b><p>Decide usar get_weather.</p></div>
+<div class="flow-node"><div class="icon">🔌</div><small>MCP</small><b>weather-mcp</b><p>Valida parámetros y arma la consulta.</p></div>
+<div class="flow-node"><div class="icon">🌦️</div><small>API</small><b>Open-Meteo</b><p>Entrega clima actual.</p></div>
+<div class="flow-node"><div class="icon">✅</div><small>Respuesta</small><b>JSON limpio</b><p>Temperatura, viento y descripción.</p></div>
+</div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="16" id="demo">
+<div class="canvas split">
+<div class="mini-grid">
+<div class="eyebrow reveal">Demo central</div>
+<h2 class="reveal">La herramienta <span class="cyan">get_weather</span></h2>
+<p class="lede reveal">Esta es la pieza que más conviene mostrar en vivo: el decorador registra la herramienta, las validaciones protegen la entrada y la función devuelve un objeto normalizado.</p>
+<div class="code-note reveal">
+<span class="pill">Para explicar en clase</span>
+<p>Haz énfasis en que el modelo no llama la API directamente. El modelo llama una tool con parámetros simples.</p>
+</div>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>main.py</span><span>registro de tool</span></div>
+<pre>@mcp.tool(
+    name="get_weather",
+    description="Get the current weather for one location using latitude and longitude.",
+)
+def get_weather(latitude: float, longitude: float, elevation: float | None = None):
+    if not -90 &lt;= latitude &lt;= 90:
+        raise ValueError("latitude must be between -90 and 90")
+    if not -180 &lt;= longitude &lt;= 180:
+        raise ValueError("longitude must be between -180 and 180")
+    return _fetch_weather(latitude, longitude, elevation)</pre>
+</div>
+</div>
+</section>
+<section class="slide" data-step="17" id="json">
+<div class="canvas two">
+<div class="code-wrap reveal">
+<div class="code-head"><span>Entrada del modelo</span><span>parámetros simples</span></div>
+<pre>{
+  "latitude": 4.711,
+  "longitude": -74.0721,
+  "elevation": 2640
+}</pre>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>Respuesta al modelo</span><span>objeto normalizado</span></div>
+<pre>{
+  "current_weather": {
+    "temperature": { "value": 13.5, "unit": "°C" },
+    "weather_description": "Overcast",
+    "wind_speed": { "value": 10.2, "unit": "km/h" }
+  }
+}</pre>
+</div>
+<div class="panel reveal" style="grid-column:1/-1">
+<h3>Frase clave para estudiantes</h3>
+<p class="lede">“MCP convierte una capacidad externa en una herramienta entendible y segura para el modelo.”</p>
+</div>
+</div>
+</section>
+<section class="slide" data-step="18" id="seguridad">
+<div class="canvas safe-grid">
+<div class="mini-grid">
+<div class="eyebrow reveal">Seguridad</div>
+<h2 class="reveal">Qué revisar antes de conectar una tool</h2>
+<p class="lede reveal">Un servidor MCP corre con permisos locales. Por eso conviene enseñar seguridad como parte del diseño, no como tema final.</p>
+<div class="steps reveal">
+<div class="step"><div><strong>Alcance mínimo</strong><span>Una tool debe hacer una sola cosa clara.</span></div></div>
+<div class="step"><div><strong>Entradas validadas</strong><span>Nunca confiar en parámetros generados por el modelo.</span></div></div>
+<div class="step"><div><strong>Secretos fuera del código</strong><span>Variables de entorno y .gitignore desde el inicio.</span></div></div>
+</div>
+</div>
+<div class="panel reveal risk-bars">
+<div class="risk-row"><span>Lectura segura</span><div class="bar-bg"><div class="bar-fill" style="--w: 92%"></div></div><div class="percent">92%</div></div>
+<div class="risk-row"><span>Validación</span><div class="bar-bg"><div class="bar-fill" style="--w: 88%"></div></div><div class="percent">88%</div></div>
+<div class="risk-row"><span>Secretos</span><div class="bar-bg"><div class="bar-fill" style="--w: 100%"></div></div><div class="percent">sin key</div></div>
+<div class="risk-row"><span>Permisos</span><div class="bar-bg"><div class="bar-fill warn" style="--w: 38%"></div></div><div class="percent">bajo</div></div>
+<p style="margin-top:12px">En este ejemplo, el riesgo es bajo porque consulta una API pública, no escribe archivos y no ejecuta comandos.</p>
+</div>
+</div>
+</section>
+<section class="slide" data-step="19" id="guion">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Guion sugerido</div>
+<h2 class="reveal">Cómo explicarlo en 10–12 minutos</h2>
+<p class="lede reveal">Esta secuencia evita que la exposición se vuelva una lectura de diapositivas. Cada bloque tiene una intención pedagógica.</p>
+</div>
+<div class="timeline reveal"><div class="time-row"><div class="time">0:00</div><div><b>Problema cotidiano</b><p>“Quiero que una IA consulte el clima, pero sin darle acceso libre ni escribir una integración distinta por cada app.”</p></div></div><div class="time-row"><div class="time">1:00</div><div><b>Instalación de uv</b><p>Mostrar que uv se instala como herramienta de terminal. Verificar con <span class="mono">uv --version</span>.</p></div></div><div class="time-row"><div class="time">2:15</div><div><b>pip vs pipx</b><p>Aclarar que pip es para librerías del proyecto y pipx para aplicaciones CLI aisladas.</p></div></div><div class="time-row"><div class="time">3:30</div><div><b>uv como base del proyecto</b><p>Explicar pyproject.toml, uv.lock, .venv y por qué <span class="mono">uv run</span> evita errores de entorno.</p></div></div><div class="time-row"><div class="time">5:30</div><div><b>MCP como protocolo</b><p>Separar host, cliente y servidor. Luego mostrar el problema M×N.</p></div></div><div class="time-row"><div class="time">7:30</div><div><b>Primitivas MCP</b><p>Tools, resources y prompts. Aclarar que en esta demo usamos una tool.</p></div></div><div class="time-row"><div class="time">9:00</div><div><b>Arquitectura</b><p>Seguir la animación de la pregunta: usuario → host → MCP → API → respuesta.</p></div></div><div class="time-row"><div class="time">10:30</div><div><b>Demo</b><p>Ejecutar get_weather, mostrar parámetros, validación y JSON de salida.</p></div></div><div class="time-row"><div class="time">11:30</div><div><b>Cierre</b><p>Preguntar: “¿Qué otro servicio convertirían en MCP y qué validaciones pondrían?”</p></div></div></div>
+</div>
+</section>
+<section class="slide" data-step="20" id="distribucion">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Distribución</div>
+<h2 class="reveal">Cómo compartir el servidor</h2>
+<p class="lede reveal">Después de la demo, puedes cerrar mostrando que no es solo un ejercicio local: el servidor puede publicarse y reutilizarse.</p>
+</div>
+<div class="cards reveal">
+<div class="card"><div class="num">A</div><h3>GitHub</h3><p>Subir el repo y documentar cómo correr <span class="mono">uv run weather-mcp</span>.</p></div>
+<div class="card"><div class="num">B</div><h3>PyPI</h3><p>Empaquetar con <span class="mono">uv build</span> y publicar con <span class="mono">uv publish</span>.</p></div>
+<div class="card"><div class="num">C</div><h3>Directorio MCP</h3><p>Listarlo para que otros hosts o usuarios lo descubran.</p></div>
+<div class="card"><div class="num">D</div><h3>Servidor remoto</h3><p>Todo lo anterior sigue exigiendo clonar y correr el código. Para que alguien lo use sin instalar nada, hay que exponerlo en la nube — siguiente.</p></div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="21" id="cloud-transporte">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Exponerlo en la nube · 1</div>
+<h2 class="reveal">De <span class="mono">stdio</span> a un servidor <span class="accent">HTTP</span></h2>
+<p class="lede reveal">Hoy weather-mcp corre por stdio: el host lo lanza como subproceso local y le habla por entrada/salida estándar. Por diseño, <strong>eso solo funciona en la misma máquina</strong>. Para que otra persona lo use sin clonar el repo, el servidor debe escuchar en un puerto de red — el transporte <span class="mono">streamable-http</span> del SDK de MCP.</p>
+<div class="teacher-note reveal"><b>Idea clave</b><p>“stdio conecta procesos dentro de un mismo computador; streamable-http conecta cualquier cliente MCP a través de una URL, igual que una API REST.”</p></div>
+</div>
+<div class="compare-cols reveal">
+<div class="compare-card bad">
+<h3>stdio · como está hoy</h3>
+<ul>
+<li>El host ejecuta <span class="mono">uv run weather-mcp</span> como subproceso propio.</li>
+<li>Solo quien tiene el repo clonado en su máquina puede usarlo.</li>
+<li>No hay URL ni puerto — no hay nada que "exponer" a internet.</li>
+</ul>
+</div>
+<div class="compare-card good">
+<h3>streamable-http · para la nube</h3>
+<ul>
+<li>El proceso escucha en un puerto, por ejemplo <span class="mono">0.0.0.0:8000</span>.</li>
+<li>Cualquier cliente MCP se conecta con una URL: <span class="mono">https://tu-dominio.com/mcp</span>.</li>
+<li>Un solo servidor desplegado atiende a muchos usuarios a la vez.</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section class="slide" data-step="22" id="cloud-desplegar">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Exponerlo en la nube · 2</div>
+<h2 class="reveal">Desplegarlo y cerrarlo con llave</h2>
+<p class="lede reveal">Un servidor MCP alcanzable por internet necesita las mismas protecciones que cualquier API pública. weather-mcp es de solo lectura y sin secretos, así que el riesgo es bajo — pero cualquier servidor con más poder sí necesita autenticación.</p>
+<div class="steps reveal">
+<div class="step"><div><strong>Cambiar el transporte</strong><span>En main.py: <span class="mono">FastMCP(host="0.0.0.0", port=8000)</span> y <span class="mono">mcp.run(transport="streamable-http")</span> en vez del <span class="mono">mcp.run()</span> por stdio actual.</span></div></div>
+<div class="step"><div><strong>Desplegar detrás de HTTPS</strong><span>Contenedor con Docker en Fly.io, Render o Railway, o una VPS con Nginx/Caddy como proxy TLS — MCP remoto exige HTTPS.</span></div></div>
+<div class="step"><div><strong>Agregar autenticación</strong><span>FastMCP acepta <span class="mono">token_verifier</span> o <span class="mono">auth</span> (OAuth 2.1) si el servidor hace algo más sensible que consultar un clima público.</span></div></div>
+<div class="step"><div><strong>Validar el Host</strong><span><span class="mono">transport_security</span> es un parámetro nativo de FastMCP para bloquear DNS rebinding en servidores remotos.</span></div></div>
+</div>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>Cómo se conecta alguien remoto</span><span>Claude Code</span></div>
+<pre># en vez de un comando local, se agrega la URL del servidor
+claude mcp add --transport http weather-mcp \
+  https://tu-dominio.com/mcp
+
+# si el servidor pide autenticación:
+claude mcp add --transport http weather-mcp \
+  https://tu-dominio.com/mcp \
+  --header "Authorization: Bearer &lt;token&gt;"</pre>
+</div>
+</div>
+</section>
+<section class="slide" data-step="23" id="cierre">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">Cierre activo</div>
+<h2 class="reveal">Preguntas para comprobar comprensión</h2>
+<p class="lede reveal">Pasa el mouse sobre cada tarjeta para ver la respuesta sugerida. En clase, primero deja que los estudiantes respondan.</p>
+</div>
+<div class="quiz reveal">
+<div class="card"><h3>¿Qué diferencia hay entre pyproject.toml y uv.lock?</h3><p>Uno declara intención; el otro congela versiones exactas.</p><div class="answer">Respuesta: declaración vs. reproducción.</div></div>
+<div class="card"><h3>¿Qué hace uv run?</h3><p>Ejecuta un comando usando el entorno correcto del proyecto.</p><div class="answer">Respuesta: corre sin activar venv manualmente.</div></div>
+<div class="card"><h3>¿Qué problema resuelve MCP?</h3><p>Comunicación estándar entre hosts de IA y herramientas externas.</p><div class="answer">Respuesta: interoperabilidad.</div></div>
+<div class="card"><h3>¿Host y servidor MCP son lo mismo?</h3><p>No. El host es la app de IA; el servidor expone capacidades.</p><div class="answer">Respuesta: son roles diferentes.</div></div>
+<div class="card"><h3>¿El modelo llama Open-Meteo directamente?</h3><p>No. Llama la tool <span class="mono">get_weather</span> del servidor MCP.</p><div class="answer">Respuesta: no, llama la herramienta.</div></div>
+<div class="card"><h3>¿Por qué validar latitud y longitud?</h3><p>Porque los parámetros pueden venir del modelo y deben controlarse.</p><div class="answer">Respuesta: seguridad y calidad.</div></div>
+
+<div class="card"><h3>¿Por qué no instalar todo con pip global?</h3><p>Porque puede contaminar el Python global y mezclar herramientas con dependencias.</p><div class="answer">Respuesta: aislamiento y orden.</div></div>
+<div class="card"><h3>¿Cuándo usar pipx?</h3><p>Cuando quieres instalar una aplicación de terminal escrita en Python.</p><div class="answer">Respuesta: CLI aislada.</div></div>
+<div class="card"><h3>¿Por qué stdio no sirve para que otra persona use tu MCP?</h3><p>Porque el host lanza el servidor como subproceso local: solo existe en esa máquina.</p><div class="answer">Respuesta: hay que exponerlo por streamable-http.</div></div>
+</div>
+</div>
+</section>
+</main>
+<div class="nav-hint">Usa ↑ ↓ o los botones · ⛶ pantalla completa</div>
+<div class="slide-counter" id="slideCounter"><span class="current-num">1</span> / 24</div>
+<script>
+(() => {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('slideCounter');
+  const next = document.getElementById('next');
+  const prev = document.getElementById('prev');
+  const full = document.getElementById('full');
+  let current = 0;
+
+  function goTo(index) {
+    current = Math.max(0, Math.min(slides.length - 1, index));
+    slides[current].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', '#' + slides[current].id);
+  }
+
+  function update(index) {
+    current = index;
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    progress.style.width = `${((index + 1) / slides.length) * 100}%`;
+    counter.innerHTML = `<span class="current-num">${index + 1}</span> / ${slides.length}`;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const index = slides.indexOf(entry.target);
+        update(index);
+      }
+    });
+  }, { threshold: 0.58 });
+
+  slides.forEach(s => observer.observe(s));
+  next.addEventListener('click', () => goTo(current + 1));
+  prev.addEventListener('click', () => goTo(current - 1));
+  full.addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (['ArrowDown', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); goTo(current + 1); }
+    if (['ArrowUp', 'PageUp'].includes(event.key)) { event.preventDefault(); goTo(current - 1); }
+    if (event.key === 'Home') { event.preventDefault(); goTo(0); }
+    if (event.key === 'End') { event.preventDefault(); goTo(slides.length - 1); }
+  });
+
+  /* Touch / swipe support for mobile */
+  let touchStartY = 0;
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => {
+    touchStartY = e.changedTouches[0].screenY;
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 50) {
+      if (dy < 0) goTo(current + 1);
+      else goTo(current - 1);
+    }
+  }, { passive: true });
+
+  const hash = location.hash.replace('#', '');
+  const start = slides.findIndex(s => s.id === hash);
+  if (start >= 0) setTimeout(() => goTo(start), 50);
+})();
+</script>
+</body>
+</html>

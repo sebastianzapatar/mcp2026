@@ -2,12 +2,24 @@
 
 Este proyecto tiene dos ejemplos de servidor MCP en Python:
 
-- [mini_mcp.py](/Users/sebastianzapata/mcp/mini_mcp.py:1): ejemplo mínimo para entender la estructura
-- [main.py](/Users/sebastianzapata/mcp/main.py:1): ejemplo de clima usando Open-Meteo
+- [mini_mcp.py](mini_mcp.py): ejemplo mínimo para entender la estructura
+- [main.py](main.py): ejemplo de clima usando Open-Meteo
+
+También incluye [index.html](index.html), una presentación explicando **uv**, **pipx** y **MCP** con `weather-mcp` como ejemplo real (arquitectura, seguridad, y cómo exponerlo en la nube). Ábrelo directo en el navegador.
+
+## Qué se versiona en este repo
+
+Solo el código y los archivos de configuración de uv, sin artefactos generados:
+
+| Se versiona | No se versiona (ver [.gitignore](.gitignore)) |
+| --- | --- |
+| `main.py`, `mini_mcp.py` | `.venv/`, `__pycache__/` |
+| `pyproject.toml`, `.python-version` | `*.egg-info`, `build/`, `dist/` |
+| `index.html`, `README.md`, `.gitignore` | `.uv-cache/`, `.claude/`, `.DS_Store` |
 
 ## Ejemplo mínimo
 
-El archivo [mini_mcp.py](/Users/sebastianzapata/mcp/mini_mcp.py:1) es el más simple del proyecto.
+El archivo [mini_mcp.py](mini_mcp.py) es el más simple del proyecto.
 
 Hace solo esto:
 - crea un servidor MCP
@@ -153,7 +165,7 @@ Dentro de `mcpServers`:
 
 ## Ejemplo de clima
 
-El archivo [main.py](/Users/sebastianzapata/mcp/main.py:1) es un ejemplo más completo.
+El archivo [main.py](main.py) es un ejemplo más completo.
 
 Expone la tool `get_weather`, recibe:
 
@@ -225,15 +237,12 @@ Reglas generales para servidores MCP propios o de terceros:
 
 ## Publicarlo para que otros lo descarguen
 
-No publicado todavía — son pasos manuales porque requieren tus propias cuentas y son acciones públicas difíciles de revertir.
-
-**GitHub** (más simple, cualquiera clona y corre `uv run weather-mcp`):
+**GitHub**: el repo ya existe en [github.com/sebastianzapatar/mcp2026](https://github.com/sebastianzapatar/mcp2026) (rama `main`). Para subir el resto de archivos:
 
 ```bash
-git add main.py mini_mcp.py pyproject.toml README.md .gitignore
-git commit -m "Add weather MCP server"
-gh repo create weather-mcp --public --source=. --remote=origin
-git push -u origin master
+git add main.py mini_mcp.py pyproject.toml .python-version index.html README.md .gitignore
+git commit -m "Add weather MCP server and presentation"
+git push
 ```
 
 **PyPI** (instalable con `pip install weather-mcp` o `uvx weather-mcp`, requiere cuenta en pypi.org y un token de API):
