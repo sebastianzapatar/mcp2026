@@ -12,11 +12,16 @@ dependencies = [
     "certifi",
     "langchain>=1.3.10",
     "mcp[cli]>=1.28.0",
+    "fastapi",
+    "uvicorn",
+    "scalekit-sdk-python",
+    "python-dotenv",
 ]
 
 [project.scripts]
-mini-mcp = "mini_mcp:main"
-weather-mcp = "main:main"
+mini-mcp = "basico.mini_mcp:main"
+weather-mcp = "basico.main:main"
+secure-mcp = "seguro.secure_mcp:main"
 
 [tool.setuptools]
-py-modules = ["main", "mini_mcp"]
+packages = ["basico", "seguro"]

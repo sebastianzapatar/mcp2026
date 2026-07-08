@@ -651,7 +651,7 @@
 </div>
 <div class="panel reveal">
 <p class="caption">Ruta sugerida de clase</p>
-<div class="toc-grid"><a class="toc-item" href="#mapa"><span>01</span><b>Mapa mental</b></a><a class="toc-item" href="#uv-que-es"><span>02</span><b>uv explicado</b></a><a class="toc-item" href="#uv-instalacion"><span>03</span><b>Instalar uv</b></a><a class="toc-item" href="#pipx-vs-pip"><span>04</span><b>pip vs pipx</b></a><a class="toc-item" href="#uv-problema"><span>05</span><b>Problema de Python</b></a><a class="toc-item" href="#uv-archivos"><span>06</span><b>Archivos clave</b></a><a class="toc-item" href="#uv-flujo"><span>07</span><b>Movimiento de uv</b></a><a class="toc-item" href="#uv-comandos"><span>08</span><b>Comandos esenciales</b></a><a class="toc-item" href="#mcp-que-es"><span>09</span><b>MCP explicado</b></a><a class="toc-item" href="#mcp-problema"><span>10</span><b>Problema M×N</b></a><a class="toc-item" href="#mcp-actores"><span>11</span><b>Host · cliente · servidor</b></a><a class="toc-item" href="#mcp-primitivas"><span>12</span><b>Tools, resources, prompts</b></a><a class="toc-item" href="#mcp-api"><span>13</span><b>MCP vs. API directa</b></a><a class="toc-item" href="#mcp-ciclo"><span>14</span><b>Ciclo de una llamada</b></a><a class="toc-item" href="#arquitectura"><span>15</span><b>Arquitectura animada</b></a><a class="toc-item" href="#demo"><span>16</span><b>Demo: get_weather</b></a><a class="toc-item" href="#json"><span>17</span><b>Entrada y salida JSON</b></a><a class="toc-item" href="#seguridad"><span>18</span><b>Seguridad</b></a><a class="toc-item" href="#guion"><span>19</span><b>Guion de clase</b></a><a class="toc-item" href="#distribucion"><span>20</span><b>Distribución</b></a><a class="toc-item" href="#cloud-transporte"><span>21</span><b>stdio vs. HTTP</b></a><a class="toc-item" href="#cloud-desplegar"><span>22</span><b>Desplegar y proteger</b></a><a class="toc-item" href="#cierre"><span>23</span><b>Quiz de cierre</b></a></div>
+<div class="toc-grid"><a class="toc-item" href="#mapa"><span>01</span><b>Mapa mental</b></a><a class="toc-item" href="#uv-que-es"><span>02</span><b>uv explicado</b></a><a class="toc-item" href="#uv-instalacion"><span>03</span><b>Instalar uv</b></a><a class="toc-item" href="#pipx-vs-pip"><span>04</span><b>pip vs pipx</b></a><a class="toc-item" href="#uv-problema"><span>05</span><b>Problema de Python</b></a><a class="toc-item" href="#uv-archivos"><span>06</span><b>Archivos clave</b></a><a class="toc-item" href="#uv-flujo"><span>07</span><b>Movimiento de uv</b></a><a class="toc-item" href="#uv-comandos"><span>08</span><b>Comandos esenciales</b></a><a class="toc-item" href="#mcp-que-es"><span>09</span><b>MCP explicado</b></a><a class="toc-item" href="#mcp-problema"><span>10</span><b>Problema M×N</b></a><a class="toc-item" href="#mcp-actores"><span>11</span><b>Host · cliente · servidor</b></a><a class="toc-item" href="#mcp-primitivas"><span>12</span><b>Tools, resources, prompts</b></a><a class="toc-item" href="#mcp-api"><span>13</span><b>MCP vs. API directa</b></a><a class="toc-item" href="#mcp-ciclo"><span>14</span><b>Ciclo de una llamada</b></a><a class="toc-item" href="#arquitectura"><span>15</span><b>Arquitectura animada</b></a><a class="toc-item" href="#demo"><span>16</span><b>Demo: get_weather</b></a><a class="toc-item" href="#json"><span>17</span><b>Entrada y salida JSON</b></a><a class="toc-item" href="#seguridad"><span>18</span><b>Seguridad</b></a><a class="toc-item" href="#guion"><span>19</span><b>Guion de clase</b></a><a class="toc-item" href="#distribucion"><span>20</span><b>Distribución</b></a><a class="toc-item" href="#cloud-transporte"><span>21</span><b>stdio vs. HTTP</b></a><a class="toc-item" href="#cloud-desplegar"><span>22</span><b>Desplegar y proteger</b></a><a class="toc-item" href="#oauth-scalekit"><span>23</span><b>OAuth 2.1 y Scalekit</b></a><a class="toc-item" href="#config-scalekit"><span>24</span><b>Configurar Scalekit</b></a><a class="toc-item" href="#cierre"><span>25</span><b>Quiz de cierre</b></a></div>
 </div>
 </div>
 </section>
@@ -1099,30 +1099,80 @@ def get_weather(latitude: float, longitude: float, elevation: float | None = Non
 <section class="slide" data-step="22" id="cloud-desplegar">
 <div class="canvas two">
 <div class="mini-grid">
-<div class="eyebrow reveal">Exponerlo en la nube · 2</div>
-<h2 class="reveal">Desplegarlo y cerrarlo con llave</h2>
-<p class="lede reveal">Un servidor MCP alcanzable por internet necesita las mismas protecciones que cualquier API pública. weather-mcp es de solo lectura y sin secretos, así que el riesgo es bajo — pero cualquier servidor con más poder sí necesita autenticación.</p>
+<div class="eyebrow reveal">Seguridad en la nube</div>
+<h2 class="reveal">Proteger el MCP de <span class="accent">código malicioso</span></h2>
+<p class="lede reveal">Exponer un servidor a internet sin protección permite que cualquiera ejecute tus herramientas. Imagina si tu MCP tiene acceso a bases de datos o borra archivos. Necesitas una capa de autorización robusta.</p>
 <div class="steps reveal">
-<div class="step"><div><strong>Cambiar el transporte</strong><span>En main.py: <span class="mono">FastMCP(host="0.0.0.0", port=8000)</span> y <span class="mono">mcp.run(transport="streamable-http")</span> en vez del <span class="mono">mcp.run()</span> por stdio actual.</span></div></div>
-<div class="step"><div><strong>Desplegar detrás de HTTPS</strong><span>Contenedor con Docker en Fly.io, Render o Railway, o una VPS con Nginx/Caddy como proxy TLS — MCP remoto exige HTTPS.</span></div></div>
-<div class="step"><div><strong>Agregar autenticación</strong><span>FastMCP acepta <span class="mono">token_verifier</span> o <span class="mono">auth</span> (OAuth 2.1) si el servidor hace algo más sensible que consultar un clima público.</span></div></div>
-<div class="step"><div><strong>Validar el Host</strong><span><span class="mono">transport_security</span> es un parámetro nativo de FastMCP para bloquear DNS rebinding en servidores remotos.</span></div></div>
+<div class="step"><div><strong>Autenticación y Autorización</strong><span>No basta con saber quién eres, el servidor debe verificar si tienes permisos para ejecutar la herramienta.</span></div></div>
+<div class="step"><div><strong>OAuth 2.1</strong><span>El estándar moderno recomendado para proteger servidores MCP y validar tokens seguros (JWT).</span></div></div>
+<div class="step"><div><strong>Validar el Token en FastAPI</strong><span>Usando una dependencia HTTP para rechazar conexiones anónimas y prevenir ataques.</span></div></div>
 </div>
 </div>
 <div class="code-wrap reveal">
-<div class="code-head"><span>Cómo se conecta alguien remoto</span><span>Claude Code</span></div>
-<pre># en vez de un comando local, se agrega la URL del servidor
-claude mcp add --transport http weather-mcp \
-  https://tu-dominio.com/mcp
+<div class="code-head"><span>Cómo requiere conexión remota segura</span><span>Claude Code</span></div>
+<pre># Claude debe incluir un Bearer Token generado 
+# por un servidor de Autorización.
+claude mcp add --transport http secure-mcp \
+  https://tu-dominio.com/sse \
+  --header "Authorization: Bearer eyJhbGciOiJ..."
 
-# si el servidor pide autenticación:
-claude mcp add --transport http weather-mcp \
-  https://tu-dominio.com/mcp \
-  --header "Authorization: Bearer &lt;token&gt;"</pre>
+# Si el token falta o es inválido, el servidor MCP 
+# devolverá un 401 Unauthorized y no ejecutará nada.</pre>
 </div>
 </div>
 </section>
-<section class="slide" data-step="23" id="cierre">
+<section class="slide" data-step="23" id="oauth-scalekit">
+<div class="canvas">
+<div class="mini-grid center">
+<div class="eyebrow reveal">Workflow OAuth 2.1</div>
+<h2 class="reveal">El flujo con <span class="cyan">Scalekit</span></h2>
+<p class="lede reveal">Implementar OAuth desde cero es complejo. <strong>Scalekit</strong> simplifica la validación de tokens y descubrimiento. Este es el flujo de trabajo (Workflow) cuando un Agente/Cliente se conecta.</p>
+</div>
+<div class="flow reveal" style="grid-template-columns: repeat(5, 1fr);">
+<div class="flow-node"><div class="icon">🤖</div><small>Paso 1</small><b>Cliente MCP</b><p>El LLM o Agente solicita acceso y necesita un Token para conectarse al servidor.</p></div>
+<div class="flow-line"></div>
+<div class="flow-node"><div class="icon">🔐</div><small>Paso 2</small><b>Auth Server</b><p>Scalekit emite un Token JWT (Bearer) tras autenticar correctamente al cliente.</p></div>
+<div class="flow-line" style="left:28%;"></div>
+<div class="packet"></div>
+<div class="flow-node"><div class="icon">📩</div><small>Paso 3</small><b>Petición SSE</b><p>El cliente llama al endpoint HTTP (/sse) del Servidor MCP enviando el Token.</p></div>
+<div class="flow-line" style="left:48%;"></div>
+<div class="flow-node"><div class="icon">🛡️</div><small>Paso 4</small><b>Validación</b><p>El Servidor MCP usa scalekit-sdk-python para verificar la firma y los permisos.</p></div>
+<div class="flow-line" style="left:68%;"></div>
+<div class="flow-node"><div class="icon">✅</div><small>Paso 5</small><b>Acceso Ok</b><p>El MCP aprueba la conexión y permite ejecutar las Herramientas (Tools) seguras.</p></div>
+</div>
+<p style="margin-top:24px; text-align:center; color:var(--gold); font-size:0.95rem;">
+  <strong>Dato clave de Seguridad:</strong> El servidor MCP <em>jamás</em> te pide usuario y contraseña directamente. El formulario de inicio de sesión vive exclusivamente en <strong>Scalekit</strong>, permitiéndote ofrecer logins con <strong>Gmail, GitHub</strong> o Correos Institucionales sin escribir una sola línea de código en Python.
+</p>
+</div>
+</section>
+<section class="slide" data-step="24" id="config-scalekit">
+<div class="canvas two">
+<div class="mini-grid">
+<div class="eyebrow reveal">Manos a la obra</div>
+<h2 class="reveal">Configurar y <span class="accent">Ejecutar</span></h2>
+<p class="lede reveal">Para que <code>secure-mcp</code> pueda validar tokens, debes obtener tus credenciales de Scalekit. Luego se pasan como variables de entorno al ejecutar el servidor.</p>
+<div class="steps reveal">
+<div class="step"><div><strong>Crear Proyecto</strong><span>Entra al Dashboard de Scalekit, crea una aplicación y obtén tu Environment URL, Client ID y Client Secret.</span></div></div>
+<div class="step"><div><strong>Crear .env</strong><span>Copia el archivo <span class="mono">.env.template</span> como <span class="mono">.env</span> y pega ahí tus credenciales para que el servidor las lea.</span></div></div>
+<div class="step"><div><strong>Iniciar el Servidor</strong><span>Usa <span class="mono">uv run secure-mcp</span> para iniciar la app de FastAPI en el puerto 8000.</span></div></div>
+</div>
+</div>
+<div class="code-wrap reveal">
+<div class="code-head"><span>En la terminal del Servidor</span><span>Bash</span></div>
+<pre># 1. Copiar la plantilla de credenciales
+cp .env.template .env
+
+# (Abre .env y coloca tus llaves ahí)
+
+# 2. Iniciar el servidor
+uv run secure-mcp
+
+# El servidor rechazará (401) cualquier 
+# petición sin un Bearer token válido.</pre>
+</div>
+</div>
+</section>
+<section class="slide" data-step="25" id="cierre">
 <div class="canvas">
 <div class="mini-grid center">
 <div class="eyebrow reveal">Cierre activo</div>
@@ -1145,7 +1195,7 @@ claude mcp add --transport http weather-mcp \
 </section>
 </main>
 <div class="nav-hint">Usa ↑ ↓ o los botones · ⛶ pantalla completa</div>
-<div class="slide-counter" id="slideCounter"><span class="current-num">1</span> / 24</div>
+<div class="slide-counter" id="slideCounter"><span class="current-num">1</span> / 26</div>
 <script>
 (() => {
   const slides = Array.from(document.querySelectorAll('.slide'));
